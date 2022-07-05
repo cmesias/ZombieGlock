@@ -44,6 +44,8 @@ public:
 	bool rightclick;
 	bool test;
 
+private:	// Weapons
+
 public:	// resources
 	// Local resources
 	LTexture gPlayer;
@@ -75,6 +77,36 @@ public:	// resources
 	 * 15: Food
 	 */
 	SDL_Rect rItems[16];
+
+	/* Item types
+	 *
+	 * -1: Knife
+	 * 0: Pistol
+	 * 1: Rifle
+	 * 2: Shotgun
+	 * 3: Crowbar
+	 *
+	 * 4: Sword
+	 * 5: SOMETHING WHITE
+	 * 6: Adrenaline
+	 * 7: Health
+	 *
+	 * 8: Vest
+	 * 9: Helmet
+	 * 10: Pistol/Rifle ammo
+	 * 11: Shotgun ammo
+	 *
+	 * 12: Water
+	 * 13: Soda
+	 * 14: Energy Drink
+	 * 15: Food
+	 */
+	int itemIndex = 0;
+
+	// Weapon attack speeds
+	const float pistolAtkSpe = 9.85;
+	const float rifleAtkSpe = 13.67;
+	const float shotgunAtkSpe = 4.45;
 
 	/*
 	 *
@@ -250,15 +282,6 @@ private:
 	bool shootDelay 	= false;
 	bool initialshot 	= false;
 
-	/* Weapon
-	 * -1: Knife
-	 * 0: Pistol
-	 * 1: Shotgun
-	 * 2: Sniper
-	 *
-	 */
-	int weapon;
-
 	// Attack
 
 	/*
@@ -314,7 +337,6 @@ private:
 	float damage;			// Sword damage
 	float castDamage;		// Cast damage
 	float damageMultipler;	// Parrying will increase damage multiplier
-	float castAtkSpe;		// Cast atk speed - deprecated, delete?
 
 	// Mana
 	float mana;				// Mana
@@ -350,30 +372,6 @@ private:	// Variables used in Textures
 
 	const float xOffset = 0;
 	const float yOffset = - (this->h * 0.70);
-
-	/* Item types
-	 *
-	 * 0: Pistol
-	 * 1: Rifle
-	 * 2: Shotgun
-	 * 3: Crowbar
-	 *
-	 * 4: Sword
-	 * 5: SOMETHING WHITE
-	 * 6: Adrenaline
-	 * 7: Health
-	 *
-	 * 8: Vest
-	 * 9: Helmet
-	 * 10: Pistol/Rifle ammo
-	 * 11: Shotgun ammo
-	 *
-	 * 12: Water
-	 * 13: Soda
-	 * 14: Energy Drink
-	 * 15: Food
-	 */
-	int itemIndex = 0;
 
 public:	// Functions to do stuff?
 

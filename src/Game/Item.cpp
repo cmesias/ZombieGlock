@@ -446,32 +446,32 @@ void Item::setStatsBasedOnType(Item item[], int i) {
 	{
 		// Pistol
 		if (item[i].id == 0) {
-			item[i].damage 			= 3;
-			item[i].slashAtkSpe 	= 1;
+			item[i].damage 			= 26;
+			item[i].slashAtkSpe 	= 6.75;
 		}
 
 		// Rifle
 		if (item[i].id == 1) {
-			item[i].damage 			= 2;
-			item[i].slashAtkSpe 	= 20;
+			item[i].damage 			= 40;
+			item[i].slashAtkSpe 	= 9.25;
 		}
 
 		// Shotgun
 		if (item[i].id == 2) {
-			item[i].slashAtkSpe 	= 1;
-			item[i].damage 			= 15;
+			item[i].damage 			= 35;
+			item[i].slashAtkSpe 	= 1.1;
 		}
 
 		// Crowbar
 		if (item[i].id == 3) {
-			item[i].slashAtkSpe 	= 5;
-			item[i].damage 			= 20;
+			item[i].damage 			= 80;
+			item[i].slashAtkSpe 	= 4.67;
 		}
 
 		// Sword
 		if (item[i].id == 4) {
-			item[i].slashAtkSpe 	= 5;
-			item[i].damage 			= 20;
+			item[i].damage 			= 60;
+			item[i].slashAtkSpe 	= 7.87;
 		}
 	}
 

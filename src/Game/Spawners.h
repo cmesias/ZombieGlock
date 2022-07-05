@@ -13,6 +13,7 @@
 #include "../Helper.h"
 #include "../LTexture.h"
 #include "TextNFont.h"
+#include "Mob.h"
 
 class Spawner: public Helper, public TextNFont {
 public:
@@ -52,10 +53,14 @@ public:	// functions
 	void remove(Spawner spawner[]);
 
 	// Update Spawner
-	void update(Spawner spawner[], int targetX, int targetY, int mx, int my, int camx, int camy);
+	void update(Spawner spawner[], int targetX, int targetY, int newMx, int newMy, int camx, int camy,
+			    Mob *mb, Mob mob[]);
 
 	// Render Spawner
-	void render(Spawner spawner[], int camx, int camy, SDL_Renderer* gRenderer);
+	void render(SDL_Renderer* gRenderer, Spawner spawner[], int camx, int camy);
+
+	// Render Spawner
+	void RenderHand(SDL_Renderer* gRenderer, Spawner spawner[], int newMx, int newMy, int camx, int camy);
 };
 
 #endif /* LOCAL_SPAWNERS_H_ */

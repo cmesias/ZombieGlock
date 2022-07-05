@@ -52,6 +52,7 @@ public:	// globals
 	 * 2: Boss
 	 * 3: Item
 	 * 4: Mobs
+	 * 5: Spawners: for mobs
 	 *
 	 */
 	int place_type;

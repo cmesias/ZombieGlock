@@ -34,6 +34,10 @@
 // TODO 6/30/2022
 //		[ ] - Spawn more monsters, zombies to be exact
 
+// TODO 7/5/2022
+//		[x] - added 3 weapons: Pistol, Rifle, Shotgun
+//		[ ] - Add waves,and add more monsters once all monsters are killed
+
 
 void PlayGame::Init() {
 
@@ -732,11 +736,6 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 		tlc.LevelToLoad = -1;
 	}
 
-	// place_type
-	if (place_type > 4) {
-		place_type = 0;
-	}
-
 	// Get mouse position
 	SDL_GetMouseState(&mx, &my);
 	/* get render width and height
@@ -881,6 +880,11 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 				else if (place_type == 4) {
 					mb.Remove(mob);
 				}
+
+				// Remove Items
+				else if (place_type == 5) {
+					spaw.remove(spawner);
+				}
 			}else{
 				if (shift) {
 					tb.selectBlockMultiple(tilebar, tl.id, mex, mey);
@@ -931,22 +935,25 @@ void PlayGame::Update(LWindow &gWindow, SDL_Renderer *gRenderer) {
 								  mx, my, camx, camy, gWindow.getWidth(), gWindow.getHeight(),
 								  map.x, map.y, map.w, map.h);*/
 
-	// Update Spawner: spawns an Asteroid
-	//spaw.update(spawner, asteroid, aste, player.x+player.w/2, player.y+player.h/2, mx, my, camx, camy);
-
-
 	// Check collision between Player & Tiles
 	//tl.checkCollision(tile, player.x, player.y, player.realw, player.realh, player.jumpstate, player.vX, player.vY, player.jumps);
 
 	// If not in editor mode
 	// If player mode
-	if (!editor) {
+	if (!editor)
+	{
 		// Update Particles
 		part.Update(particles, map.x, map.y, map.w, map.h);
 		part.UpdateVFX(particles, map.x, map.y, map.w, map.h);
 		part.UpdateBullets(particles, map.x, map.y, map.w, map.h);
+
 		// Update damage texts
 		tex.updateDamageText(text);
+
+		// Update Spawner: spawns an Asteroid
+		spaw.update(spawner, player.x+player.w/2, player.y+player.h/2, newMx, newMy, camx, camy,
+					 &mb,
+					 mob);
 
 		// If Player is alive
 		if (player.alive) {
@@ -1326,9 +1333,6 @@ void PlayGame::RenderShadows(SDL_Renderer *gRenderer, LWindow &gWindow) {
 // Render everything
 void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
-	// Render Colonies that spawn Asteroids
-	spaw.render(spawner, camx, camy, gRenderer);
-
 	// Render different layers
 	{
 
@@ -1362,6 +1366,9 @@ void PlayGame::Render(SDL_Renderer *gRenderer, LWindow &gWindow) {
 
 			// Render Tile breaking
 			RenderTileBreakingBehind();
+
+			// Render Colonies that spawn Asteroids
+			spaw.render(gRenderer, spawner, camx, camy);
 
 			// Render Mob
 			mb.RenderBack(gRenderer, mob, camx, camy);
@@ -1438,18 +1445,18 @@ void PlayGame::RenderUI(SDL_Renderer *gRenderer, LWindow &gWindow)
 	// Render number of enemies left
 	std::stringstream tempss;
 	tempss << "Eliminate: "<< mb.count;
-	fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {244, 144, 20}, fonts.gFont12);
+	fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {35, 144, 244}, fonts.gFont12);
 	fonts.gText.setAlpha(255);
-	fonts.gText.render(gRenderer, screenWidth * 0.95 - fonts.gText.getWidth(), screenHeight * 0.25,
+	fonts.gText.render(gRenderer, screenWidth * 1.00 - fonts.gText.getWidth(), screenHeight * 0.25,
 			fonts.gText.getWidth(), fonts.gText.getHeight());
 
 	// Render number of jars left
 	{
 		tempss.str(std::string());
 		tempss << "Destroy: "<< jarsLeft.size();
-		fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {244, 144, 20}, fonts.gFont12);
+		fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {35, 144, 244}, fonts.gFont12);
 		fonts.gText.setAlpha(255);
-		fonts.gText.render(gRenderer, screenWidth * 0.95 - fonts.gText.getWidth(), screenHeight * 0.25 + (fonts.gText.getHeight()*1),
+		fonts.gText.render(gRenderer, screenWidth * 1.00 - fonts.gText.getWidth(), screenHeight * 0.25 + (fonts.gText.getHeight()*1),
 				fonts.gText.getWidth(), fonts.gText.getHeight());
 	}
 }
@@ -1603,6 +1610,12 @@ void PlayGame::RenderDebug(SDL_Renderer *gRenderer)
 			else if (place_type == 4)
 			{
 				mb.RenderHand(gRenderer, mob, newMx, newMy, mex, mey, camx, camy);
+			}
+
+			// Render Mob in Hand
+			else if (place_type == 5)
+			{
+				spaw.RenderHand(gRenderer, spawner, newMx, newMy, camx, camy);
 			}
 
 			// Render mouse coordinates clamped
@@ -1773,8 +1786,8 @@ void PlayGame::RenderEditorUI(SDL_Renderer *gRenderer, LWindow &gWindow)
 			fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255,255,255}, fonts.gFont12, 500);
 			fonts.gText.setAlpha(255);
 			fonts.gText.render(gRenderer,
-					xOffetDebug + 5,
-					yOffetDebug + screenHeight * 0.25,
+					screenWidth * 1.00 - (fonts.gText.getWidth() * 0.83) + 5 + xOffetDebug,
+					screenHeight * 0.25 + yOffetDebug,
 											fonts.gText.getWidth() * 0.83,
 											fonts.gText.getHeight() * 0.86);
 		}
@@ -2066,6 +2079,9 @@ void PlayGame::checkCollisionPlayerItem() {
 									old_sword_id,
 									0.0, 0.5);
 
+							// After checking for equipping state, every frame, stop equipping for Player
+							player.stopEquipState();
+
 							// play sound effect
 							Mix_PlayChannel(-1, settings.sCastHitBoss, 0);
 						}
@@ -2080,6 +2096,9 @@ void PlayGame::checkCollisionPlayerItem() {
 
 						// Increase player Gold keys
 						player.IncreaseHealth(25);
+
+						// After checking for equipping state, every frame, stop equipping for Player
+						player.stopEquipState();
 
 						// play sound effect
 						Mix_PlayChannel(-1, settings.sCastHitBoss, 0);
@@ -2369,11 +2388,6 @@ void PlayGame::checkCollisionParticleMob()
 								// Flash Mobes sprite
 								mob[i].flash = true;
 
-								// Remove particle
-								particles[j].time = 0;
-								particles[j].alive = false;
-								part.count--;
-
 								// Spawn blood VFX
 								part.spawnBloodVFX(particles, mob[i].x, mob[i].y, mob[i].w, mob[i].h, {255,0,0});
 
@@ -2390,7 +2404,7 @@ void PlayGame::checkCollisionParticleMob()
 								playHitSFX = true;
 
 				                // Subtract mob health
-				                mob[i].health -= player.getCastDamage();
+				                mob[i].health -= particles[j].damage;
 
 				                // Increase player score based on projectile that hit Boss
 				                if (particles[j].hurtType == -1) {
@@ -2402,9 +2416,14 @@ void PlayGame::checkCollisionParticleMob()
 
 				                // Show damage text (it will print how much damage the player did to the mob)
 				    			std::stringstream tempss;
-				    			tempss << player.getCastDamage();
+				    			tempss << particles[j].damage;
 				    			tex.spawn(gRenderer, text, mob[i].x+mob[i].w/2, mob[i].y+mob[i].w/2-15, 0.0, -0.5, 150,
 				    					tempss.str().c_str(), 1, {255, 255, 0, 255});
+
+								// Remove particle
+								particles[j].time = 0;
+								particles[j].alive = false;
+								part.count--;
 							}
 							//----------------------------- Collision Detection based on player-attack hit-box and Mob hit-box -----------------------------//
 							////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4102,6 +4121,13 @@ PlayGame::Result PlayGame::mousePressed(SDL_Event event){
 						// Spawn Mob
 						mb.Spawn(mob, newMx+camx, newMy+camy, 0.0, randDouble(1.6, 1.4));
 					}
+
+					// If bosss is our placement selection
+					if (place_type == 5) {
+
+						// Spawn Mob
+						spaw.spawn(spawner, newMx+camx, newMy+camy, 48, 48);
+					}
 				}
 			}
 		}
@@ -4295,6 +4321,11 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym )
 		break;
 	case SDLK_q:								// Change place type (i.e. Tiles or Collision Tiles)
 		place_type++;
+
+		// place_type
+		if (place_type > 5) {
+			place_type = 0;
+		}
 		break;
 	case SDLK_TAB:								// Toggle hide other layers
 		tl.hideOtherLayers = (!tl.hideOtherLayers);

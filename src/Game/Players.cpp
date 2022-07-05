@@ -68,7 +68,7 @@ void Players::Init(float spawnX, float spawnY, std::string newName){
 	this->initialshot 		= false;
 
 	// Weapon
-	this->weapon 			= 0;
+	this->itemIndex 		= 0;
 
 	// Attack
 	//this->powerUp			= 0;
@@ -119,7 +119,7 @@ void Players::Init(float spawnX, float spawnY, std::string newName){
 	// Damage
 	this->castDamage			= 15;
 	this->damageMultipler		= 1;
-	this->castAtkSpe 			= 6.87;
+	this->atkSpeed 				= 20;
 
 	// Mana
 	this->maxMana				= 100;
@@ -159,7 +159,7 @@ void Players::ResetLivesAndPlayer() {
 	newName="AAA";
 
 	// Set default sword: fists
-	this->EquipWeapon(0, 10, 5);
+	this->EquipWeapon(0, 26, 6.75);
 
 	// Reset score and lives, and turn player alive
 	this->score 				= 0;
@@ -319,86 +319,101 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 	radianCos = floor(cos(radians)*10+0.5)/10;
 	radianSin = floor(sin(radians)*10+0.5)/10;
 
-	// Shoot particle
-	if (initialshot)
-	{
-		initialshot = false;
-		// If we have enough mana
-		//if (this->mana >= 5)
-		//{
+
+	// Handle Pistol shots
+	if (itemIndex == 0) {
+
+		// Shoot particle
+		if (initialshot)
+		{
+			// Stop trigger
+			initialshot = false;
+
+			// Start delay before each shot
 			if (!shootDelay)
 			{
 				shootDelay = true;
 
+				// Set bullet shadow offset
 				float particleShadowOffset = 14;
 
-				// Pistol attack
-				if (weapon == 0) {
+				// spawn: Pistol bullet Particle
+				p_dummy.spawnPistolBullet(particle, 0,
+						getCenterX() -4, getCenterY(),
+						4, 4,
+						this->angle, this->damage, 9);
 
-
-					// spawn: Pistol flash VFX
-					p_dummy.spawnTileHitVFX(particle,
-							getCenterX(),
-							getCenterY(),
-							getW(),
-							getH());
-
-
-					// spawn: Pistol bullet Particle
-					p_dummy.spawnPistolBullet(particle, 0,
-							getCenterX() -4, getCenterY(),
-							4, 4,
-							this->angle, this->castDamage, 9);
-
-					// play audio
-					Mix_PlayChannel(1, settings->sCast, 0);
-				}
-
-				// Power up 1
-				else if (weapon == 1) {
-
-					// Spawn projectile
-					int rands  = 24;
-					float speed  = 4;
-
-					for (double j=0.0; j< 30.0; j+=10){
-						p_dummy.spawnProjectileAttack(particle, 0,
-								this->x + this->w/2 - rands/2,
-								this->y + this->h/2 - rands/2 + particleShadowOffset,
-								rands, rands, this->angle-10+j, this->castDamage/4, speed,
-								{220, 90, 90});
-					}
-
-					// play audio
-					Mix_PlayChannel(1, settings->sCast, 0);
-				}
-
-				// Power up 2
-				else if (weapon == 2) {
-
-					// Spawn projectile
-					int rands  = 50;
-					float speed  = 6;
-
-					//for (double j=0.0; j< 30.0; j+=10){
-						p_dummy.spawnProjectileAttack(particle, 0,
-								this->x + this->w/2 - rands/2,
-								this->y + this->h/2 - rands/2 + particleShadowOffset,
-								rands, rands, this->angle, this->castDamage/4, speed,
-								{90, 220, 90});
-					//}
-				}
-
-				// Subtract mana
-				//this->mana -= 2;
+				// play audio
+				Mix_PlayChannel(1, settings->sCast, 0);
 			}
-		//}
+		}
+	}
 
-		// If no more mana
-		else {
+	// Handle Rifle shots
+	if (itemIndex == 1) {
 
-			// Spawn no more mana VFX
-			//p_dummy.spawnNoMoreManaVFX(particle, x2, y2);
+		// Shoot particle
+		if (initialshot)
+		{
+
+			// Start delay before each shot
+			if (!shootDelay)
+			{
+				shootDelay = true;
+
+				// Set bullet shadow offset
+				float particleShadowOffset = 14;
+
+				// spawn: Pistol bullet Particle
+				p_dummy.spawnPistolBullet(particle, 0,
+						getCenterX() -4, getCenterY(),
+						4, 4,
+						this->angle, this->damage, 9);
+
+				// play audio
+				Mix_PlayChannel(1, settings->sCast, 0);
+			}
+		}
+	}
+
+	// Handle Shotgun shots
+	if (itemIndex == 2) {
+
+		// Shoot particle
+		if (initialshot)
+		{
+			// Stop trigger
+			initialshot = false;
+
+			// Start delay before each shot
+			if (!shootDelay)
+			{
+				shootDelay = true;
+
+				// Set bullet shadow offset
+				float particleShadowOffset = 14;
+
+				// spawn: Pistol bullet Particle
+				p_dummy.spawnPistolBullet(particle, 0,
+						getCenterX() -4, getCenterY(),
+						4, 4,
+						this->angle-5, this->damage, 9);
+
+				// spawn: Pistol bullet Particle
+				p_dummy.spawnPistolBullet(particle, 0,
+						getCenterX() -4, getCenterY(),
+						4, 4,
+						this->angle, this->damage, 9);
+
+				// spawn: Pistol bullet Particle
+				p_dummy.spawnPistolBullet(particle, 0,
+						getCenterX() -4, getCenterY(),
+						4, 4,
+						this->angle+5, this->damage, 9);
+
+				// play audio
+				Mix_PlayChannel(1, settings->sCast, 0);
+			}
 		}
 	}
 
@@ -406,7 +421,7 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 	if (shootDelay) {
 
 		// Start timer
-		shootTimer += castAtkSpe;
+		shootTimer += atkSpeed;
 
 		// After 1 second
 		if (shootTimer > 60) {
@@ -1475,29 +1490,6 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 
 		// Health
 		{
-			// Health bar
-			/*int uiX = screenWidth * 0.95 - 100 - 10;
-			int uiY = screenHeight * 0.96 - 20 - 20 - 48 - 6;
-
-			gText.loadFromRenderedText(gRenderer, "Health", {255,255,255}, gFont13);
-			gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
-
-			// Render health, bg
-			int barWidth = 150;
-			SDL_Rect tempRect = {uiX, uiY, (barWidth*this->healthMax)/this->healthMax, 24};
-			SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
-
-			// Render health
-			tempRect = {uiX + 1, uiY + 1, ((barWidth*this->health)/this->healthMax) - 2, 24-2};
-			SDL_SetRenderDrawColor(gRenderer, 255, 30, 30, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
-
-			// Render health, border
-			tempRect = {uiX, uiY, (barWidth*this->healthMax)/this->healthMax, 24};
-			SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
-			SDL_RenderDrawRect(gRenderer, &tempRect);*/
-
 			const float yOffsetBar = 7;
 			const float barHeight = 12;
 			const float barWidth = this->w*1.75;
@@ -1522,30 +1514,30 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 
 		}
 
+		int barWidth = 55;
 		// Mana
 		{
 			// Mana bar
-			int barHeight = 60;
 			int barSpacing = 5;
-			int uiX = screenWidth * 0.02;
-			int uiY = screenHeight * 1.00 - barHeight - barSpacing;
+			int uiX = screenWidth * 0.008;
+			int uiY = screenHeight * 1.00 - barSpacing - 8 * 1;
 			int tempN = this->dashCooldown - this->dashCoolCounter;
 
 			//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
 			//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
 
 			// Render Mana, bg
-			SDL_Rect tempRect = {uiX, uiY, 24, -((barHeight*this->maxMana)/this->maxMana)};
+			SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
 			SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
 			SDL_RenderFillRect(gRenderer, &tempRect);
 
 			// Render Mana
-			tempRect = {uiX, uiY, 24, -((barHeight*this->mana)/this->maxMana)};
+			tempRect = {uiX, uiY, ((barWidth*this->mana)/this->maxMana), 8};
 			SDL_SetRenderDrawColor(gRenderer, 0, 90, 200, 255);
 			SDL_RenderFillRect(gRenderer, &tempRect);
 
 			// Render Mana, border
-			tempRect = {uiX, uiY, 24, -((barHeight*this->maxMana)/this->maxMana)};
+			tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
 			SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
 			SDL_RenderDrawRect(gRenderer, &tempRect);
 		}
@@ -1553,27 +1545,26 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 		// Dash counter
 		{
 			// Dash bar
-			int barHeight = 60;
 			int barSpacing = 5;
-			int uiX = screenWidth * 0.06;
-			int uiY = screenHeight * 1.00 - barHeight - barSpacing;
+			int uiX = screenWidth * 0.008;
+			int uiY = screenHeight * 1.00 - barSpacing - 8 * 2;
 			int tempN = this->dashCooldown - this->dashCoolCounter;
 
 			//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
 			//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
 
 			// Render dash, bg
-			SDL_Rect tempRect = {uiX, uiY, 24, -((barHeight*this->maxMana)/this->maxMana)};
+			SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
 			SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
 			SDL_RenderFillRect(gRenderer, &tempRect);
 
 			// Render dash
-			tempRect = {uiX, uiY, 24, -(((barHeight*tempN)/this->dashCooldown))};
+			tempRect = {uiX, uiY, (((barWidth*tempN)/this->dashCooldown)), 8};
 			SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 255);
 			SDL_RenderFillRect(gRenderer, &tempRect);
 
 			// Render dash, border
-			tempRect = {uiX, uiY, 24, -((barHeight*this->maxMana)/this->maxMana)};
+			tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
 			SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
 			SDL_RenderDrawRect(gRenderer, &tempRect);
 		}
@@ -1581,32 +1572,31 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 		// Parry CD
 		{
 			// Dash bar
-			int barHeight = 60;
 			int barSpacing = 5;
-			int uiX = screenWidth * 0.10;
-			int uiY = screenHeight * 1.00 - barHeight - barSpacing;
+			int uiX = screenWidth * 0.008;
+			int uiY = screenHeight * 1.00 - barSpacing - 8 * 3;
 			int tempN = this->parryCDTimer - this->parryCDMax;
 
 			//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
 			//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
 
 			// Render dash, bg
-			SDL_Rect tempRect = {uiX, uiY, 24, -((barHeight*this->parryCDMax)/this->parryCDMax)};
+			SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->parryCDMax)/this->parryCDMax), 8};
 			SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
 			SDL_RenderFillRect(gRenderer, &tempRect);
 
 			// Render dash
-			tempRect = {uiX, uiY, 24, -(((barHeight*(-tempN))/this->parryCDMax))};
+			tempRect = {uiX, uiY, (((barWidth*(-tempN))/this->parryCDMax)), 8};
 			SDL_SetRenderDrawColor(gRenderer, 0, 220, 220, 255);
 			SDL_RenderFillRect(gRenderer, &tempRect);
 
 			// Render dash, border
-			tempRect = {uiX, uiY, 24, -((barHeight*this->parryCDMax)/this->parryCDMax)};
+			tempRect = {uiX, uiY, ((barWidth*this->parryCDMax)/this->parryCDMax), 8};
 			SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
 			SDL_RenderDrawRect(gRenderer, &tempRect);
 
 			// Render Parry, border
-			tempRect = {uiX, uiY, (barHeight*this->parryCDMax)/this->parryCDMax, 24};
+			tempRect = {uiX, uiY, (barWidth*this->parryCDMax)/this->parryCDMax, 8};
 			SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 			SDL_RenderDrawRect(gRenderer, &tempRect);
 		}
@@ -1614,7 +1604,7 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 
 	// Hearts
 	{
-		// Render number of hearts left
+		/*// Render number of hearts left
 		int marginW = 16;
 		int marginH = 16;
 		int size = 32;
@@ -1624,7 +1614,7 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 			int tempY = marginH;
 			gItems.render(gRenderer, tempX, tempY, size, size,
 									  &rItems[24], 0, NULL);
-		}
+		}*/
 	}
 
 	// Used by all 3 below
@@ -1639,30 +1629,30 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 	// Text UI
 	{
 		// Highscore text
-		/*tempsi.str( std::string() );
+		tempsi.str( std::string() );
 		tempsi << "Highscore: " << this->highscore;
 		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {244, 144, 20}, gFont12);
-		gText.render(gRenderer, 0, 75+28*2, gText.getWidth(), gText.getHeight());
+		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0, gText.getWidth(), gText.getHeight());
 
 		tempsi.str( std::string() );
 		tempsi << "Score: " << this->score;
 		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth-gText.getWidth()-15, 75+28*4, gText.getWidth(), gText.getHeight());
+		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*1, gText.getWidth(), gText.getHeight());
 
 		tempsi.str( std::string() );
 		tempsi << "Level: " << CurrentLevel;
 		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth-gText.getWidth()-15, 75+28*5, gText.getWidth(), gText.getHeight());
+		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*2, gText.getWidth(), gText.getHeight());
 
 		tempsi.str( std::string() );
 		tempsi << "Damage +" << this->damage;
 		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth-gText.getWidth()-15, 75+28*13, gText.getWidth(), gText.getHeight());
+		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*3, gText.getWidth(), gText.getHeight());
 
 		tempsi.str( std::string() );
 		tempsi << "Cast Damage +" << this->castDamage;
 		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth-gText.getWidth()-15, 75+28*14, gText.getWidth(), gText.getHeight());*/
+		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*4, gText.getWidth(), gText.getHeight());
 	}
 }
 
@@ -1693,7 +1683,7 @@ void Players::RenderDebug(SDL_Renderer *gRenderer, int camX, int camY)
 	//--------------------------------------------------------//
 
 	std::stringstream tempsi;
-	tempsi << "a: " << angle;
+	tempsi << "itemIndex: " << itemIndex;
 	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255,255,255}, gFont12);
 	gText.render(gRenderer, 0, 0, gText.getWidth(), gText.getHeight());
 
@@ -1846,14 +1836,14 @@ void Players::mouseClickState(SDL_Event &e){
 			this->leftclick = true;
 
 			// If using knife
-			if (this->weapon == -1)
+			if (this->itemIndex == -1)
 			{
 				// Attack
 				SlashAttack();
 			}
 
 			// If using pistol
-			else if (this->weapon == 0)
+			else if (this->itemIndex >=0 && this->itemIndex <=2)
 			{
 				// Shoot bullet
 				this->initialshot = true;
@@ -2391,7 +2381,7 @@ void Players::SaveData() {
 					 << this->hearts 			<< " "
 					 << this->healthMax 		<< " "
 					 << this->castDamage 		<< " "
-					 << this->castAtkSpe 		<< " "
+					 << this->atkSpeed 		<< " "
 					 << this->maxMana  			<< " "
 					 << this->manaRegenSpeed  	<< " "
 					 << this->manaGainOnParry  	<< " "
@@ -2450,7 +2440,7 @@ void Players::LoadData() {
 						  this->hearts 				>>
 						  this->healthMax 			>>
 						  this->castDamage 			>>
-						  this->castAtkSpe 			>>
+						  this->atkSpeed 			>>
 						  this->maxMana 			>>
 						  this->manaRegenSpeed 		>>
 						  this->manaGainOnParry 	>>
@@ -2494,7 +2484,7 @@ void Players::LoadData() {
 		this->hearts 			= 3;
 		this->healthMax 		= 100;
 		this->castDamage 		= 100;
-		this->castAtkSpe 		= 1;
+		this->atkSpeed 		= 1;
 		this->maxMana 			= 100;
 		this->manaRegenSpeed 	= 8.75;
 		this->manaGainOnParry 	= 5.25;

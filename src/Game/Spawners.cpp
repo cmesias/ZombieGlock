@@ -105,13 +105,14 @@ void Spawner::remove(Spawner spawner[]) {
 }
 
 // Update Spawner
-void Spawner::update(Spawner spawner[], int targetX, int targetY, int mx, int my, int camx, int camy){
+void Spawner::update(Spawner spawner[], int targetX, int targetY, int newMx, int newMy, int camx, int camy,
+					 Mob *mb, Mob mob[]){
 	for (int i = 0; i < 200; i++){
 		if (spawner[i].alive)
 		{
 			// Mouse on Spawner
-			if (mx > spawner[i].x && mx < spawner[i].x + spawner[i].w &&
-				my > spawner[i].y && my < spawner[i].y + spawner[i].h) {
+			if (newMx+camx > spawner[i].x && newMx+camx < spawner[i].x + spawner[i].w &&
+					newMy+camy > spawner[i].y && newMy+camy < spawner[i].y + spawner[i].h) {
 				spawner[i].moused = true;
 			} else {
 				spawner[i].moused = false;
@@ -120,7 +121,6 @@ void Spawner::update(Spawner spawner[], int targetX, int targetY, int mx, int my
 			// Spawn asteroids
 			if (spawner[i].type == 0)
 			{
-
 				spawner[i].x+=spawner[i].reduction/2;
 				spawner[i].y+=spawner[i].reduction/2;
 				spawner[i].w -= spawner[i].reduction;
@@ -129,6 +129,13 @@ void Spawner::update(Spawner spawner[], int targetX, int targetY, int mx, int my
 					spawner[i].spawnTimer 	= 0;
 					spawner[i].spawned 	   += 1;
 		            int randAngle 			= randDouble(0.0, 360.0);
+
+
+
+					// Spawn Mob
+					mb->Spawn(mob, spawner[i].x-spawner[i].spawnedW/2,
+								  spawner[i].y-spawner[i].spawnedH/2, 0.0, randDouble(1.6, 1.4));
+
 		            //a_dummy.spawnAsteroidAngle(asteroid, spawner[i].x-spawner[i].spawnedW/2,
 		            //									 spawner[i].y-spawner[i].spawnedH/2,
 		            //									 spawner[i].spawnedW, spawner[i].spawnedH,
@@ -186,7 +193,7 @@ void Spawner::update(Spawner spawner[], int targetX, int targetY, int mx, int my
 }
 
 // Render Spawner
-void Spawner::render(Spawner spawner[], int camx, int camy, SDL_Renderer* gRenderer) {
+void Spawner::render(SDL_Renderer* gRenderer, Spawner spawner[], int camx, int camy) {
 	for (int i = 0; i < 200; i++) {
 		if (spawner[i].alive) {
 
@@ -205,4 +212,14 @@ void Spawner::render(Spawner spawner[], int camx, int camy, SDL_Renderer* gRende
 			SDL_RenderDrawRect(gRenderer, &spawnerRect);*/
 		}
 	}
+}
+
+void Spawner::RenderHand(SDL_Renderer* gRenderer, Spawner spawner[], int newMx, int newMy, int camx, int camy){
+
+	gSpawner.render(gRenderer,  newMx, newMy, 48, 48, &rSpawner[0]);
+
+	// Render mouse coordinates snapped to grid
+	SDL_Rect tempr = {newMx, newMy, 48, 48};
+	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+	SDL_RenderDrawRect(gRenderer, &tempr);
 }
