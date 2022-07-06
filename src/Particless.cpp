@@ -698,42 +698,69 @@ void Particle::Update(Particle particle[], int mapX, int mapY, int mapW, int map
 			// Radius
 			particle[i].radius = particle[i].w;
 
-			// Particle death timer, Time
-			particle[i].time += particle[i].deathTimerSpeed;
-
-			// Particle death, Time
-			if (particle[i].time > particle[i].deathTimer) {
-				particle[i].alive = false;
-				count--;
-			}
-
 			// Particle spin
-			particle[i].angle += particle[i].angleSpe * particle[i].angleDir;
+			UpdateSpinParticle(particle, i);
 
-			// Update particles angle based on its X and Y velocities
-			particle[i].angle = atan2 ( particle[i].vY, particle[i].vX) * 180 / 3.14159265;
+			// Particle death timer, Time
+			UpdateDeathOnTimer(particle, i);
 
 			// Particle death timer, transparency
-			particle[i].alpha -= particle[i].alphaspeed;
-			if (particle[i].alpha < 0) {
-				particle[i].alive = false;
-				count--;
-			}
+			UpdateDeathOnAlpha(particle, i);
 
-			// Particle map collision
-			if (particle[i].x+particle[i].w < mapX) {
-				particle[i].x = mapX+mapW-particle[i].w;
-			}
-			if (particle[i].x > mapX+mapW) {
-				particle[i].x = mapX-particle[i].w;
-			}
-			if (particle[i].y+particle[i].h < mapY) {
-				particle[i].y = mapY+mapH-particle[i].h;
-			}
-			if (particle[i].y > mapY+mapH) {
-				particle[i].y = mapY-particle[i].h;
-			}
+			// Check collision with map borders
+			UpdateMapCollisionCheckDeath(particle, i, mapX, mapX+mapW, mapY, mapY+mapH);
 		}
+	}
+}
+
+void Particle::UpdateSpinParticle(Particle particle[], int i)
+{
+	particle[i].angle += particle[i].angleSpe * particle[i].angleDir;
+
+	// Update particles angle based on its X and Y velocities
+	particle[i].angle = atan2 ( particle[i].vY, particle[i].vX) * 180 / 3.14159265;
+}
+
+void Particle::UpdateDeathOnTimer(Particle particle[], int i)
+{
+	particle[i].time += particle[i].deathTimerSpeed;
+
+	// Particle death, Time
+	if (particle[i].time > particle[i].deathTimer) {
+		particle[i].alive = false;
+		count--;
+	}
+}
+
+void Particle::UpdateDeathOnAlpha(Particle particle[], int i)
+{
+	particle[i].alpha -= particle[i].alphaspeed;
+	if (particle[i].alpha < 0) {
+		particle[i].alive = false;
+		count--;
+	}
+}
+
+void Particle::UpdateMapCollisionCheckDeath(Particle particle[], int i,
+		int mapLeft, int mapRight,
+		int mapTop, int mapBottom)
+{
+	// Particle map collision
+	if (particle[i].x+particle[i].w < mapLeft) {
+		particle[i].alive = false;
+		count--;
+	}
+	if (particle[i].x > mapRight) {
+		particle[i].alive = false;
+		count--;
+	}
+	if (particle[i].y+particle[i].h < mapTop) {
+		particle[i].alive = false;
+		count--;
+	}
+	if (particle[i].y > mapBottom) {
+		particle[i].alive = false;
+		count--;
 	}
 }
 

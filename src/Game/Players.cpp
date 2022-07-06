@@ -134,6 +134,11 @@ void Players::Init(float spawnX, float spawnY, std::string newName){
 	// Other stats
 	this->knockBackPower		= 1.58;
 
+	// Weapons
+	this->ammoPistol = 0;
+	this->ammoRifle = 0;
+	this->ammoShotgun = 0;
+
 	// Set default sword: fists
 	ResetLivesAndPlayer();
 
@@ -1399,7 +1404,7 @@ void Players::Render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 					realw, realh,
 					&this->vPlayer[this->sprite_index + this->sprite_dir]);
 
-			// Rende user weapon
+			// Render user weapon
 			int xOffset;
 			if (this->facing == "right")
 				xOffset = -1;
@@ -1423,183 +1428,136 @@ void Players::Render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 
 void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel)
 {
-	// Player UI
+
+	// Render player UI bars
+	RenderUIBars(gRenderer, camX, camY);
+
+	// Render Player UI text
+	RenderUIText(gRenderer, camX, camY, CurrentLevel);
+
+	// Render Player death screen prompt
+	RenderDeathScreen(gRenderer, camX, camY);
+
+}
+
+void Players::RenderUIBars(SDL_Renderer *gRenderer, int camX, int camY)
+{
+	// Health
 	{
-		// Show death screen if not alive
-		if (!this->alive){
-			// Continue YES or NO Screen
-			if (deathScreen)
-			{
-				// Render Text
-				gText.loadFromRenderedText(gRenderer, "You have died. Continue?", {255,255,255}, gFont12);
-				gText.render(gRenderer, screenWidth/2-gText.getWidth()/2, screenHeight/2-gText.getHeight()/2-50, gText.getWidth(), gText.getHeight());
+		const float yOffsetBar = 7;
+		const float barHeight = 12;
+		const float barWidth = this->w*1.75;
+		float uiX = getX() + this->w/2 - barWidth/2;
+		float uiY = getY() - this->h - barHeight - yOffsetBar;
 
-				// Render buttons: Yes
-				SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
-				SDL_RenderDrawRect(gRenderer, &continueButton[0]);
-
-				// Render buttons: No
-				SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 255);
-				SDL_RenderDrawRect(gRenderer, &continueButton[1]);
-
-				// Render buttons: ResetHighScore
-				SDL_SetRenderDrawColor(gRenderer, 0, 255, 255, 255);
-				SDL_RenderDrawRect(gRenderer, &continueButton[2]);
-
-				// Render button texts: Yes or No
-				gText.loadFromRenderedText(gRenderer, "Yes", {255,255,255}, gFont12);
-				gText.render(gRenderer,  continueButton[0].x+continueButton[0].w/2-gText.getWidth()/2,
-										 continueButton[0].y+continueButton[0].h/2-gText.getHeight()/2,
-										 gText.getWidth(), gText.getHeight());
-
-				gText.loadFromRenderedText(gRenderer, "No", {255,255,255}, gFont12);
-				gText.render(gRenderer,  continueButton[1].x+continueButton[1].w/2-gText.getWidth()/2,
-										 continueButton[1].y+continueButton[1].h/2-gText.getHeight()/2,
-										 gText.getWidth(), gText.getHeight());
-
-				// Render Text
-				gText.loadFromRenderedText(gRenderer, "Reset High Scores", {255,255,255}, gFont12);
-				gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
-										 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
-										 gText.getWidth(), gText.getHeight());
-			// Player Menu screen
-			}else{
-
-				// Render buttons: Play
-				SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
-				SDL_RenderDrawRect(gRenderer, &continueButton[0]);
-
-				// Render buttons: ResetHighScore
-				SDL_SetRenderDrawColor(gRenderer, 0, 255, 255, 255);
-				SDL_RenderDrawRect(gRenderer, &continueButton[2]);
-
-				// Render Text
-				gText.loadFromRenderedText(gRenderer, "PLAY", {255,255,255}, gFont12);
-				gText.render(gRenderer, continueButton[0].x+continueButton[0].w/2-gText.getWidth()/2,
-										 continueButton[0].y+continueButton[0].h/2-gText.getHeight()/2,
-										 gText.getWidth(), gText.getHeight());
-
-				// Render Text
-				//gText.loadFromRenderedText(gRenderer, "Reset High Scores", color, gFont12);
-				//gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
-				//						 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
-				//						 gText.getWidth(), gText.getHeight());
-			}
-		}
-
-
-		// Health
+		// Health Decay bar on Mobes
 		{
-			const float yOffsetBar = 7;
-			const float barHeight = 12;
-			const float barWidth = this->w*1.75;
-			float uiX = getX() + this->w/2 - barWidth/2;
-			float uiY = getY() - this->h - barHeight - yOffsetBar;
+			// Health Decay bar, bg
+			RenderFillRect(gRenderer, uiX-camX, uiY-camY, (barWidth*this->healthMax)/this->healthMax, barHeight, {0, 0, 0} );
 
-			// Health Decay bar on Mobes
-			{
-				// Health Decay bar, bg
-				RenderFillRect(gRenderer, uiX-camX, uiY-camY, (barWidth*this->healthMax)/this->healthMax, barHeight, {0, 0, 0} );
-
-				// Render Decay health
-				RenderFillRect(gRenderer, uiX-camX, uiY-camY, (barWidth*this->healthDecay)/this->healthMax, barHeight, {30, 60, 30} );
-			}
-
-			// Health bar on Mobes
-			{
-				// Render health
-				RenderFillRect(gRenderer, uiX-camX, uiY-camY, (barWidth*this->health)/this->healthMax, barHeight, {30, 200, 30} );
-			}
-
-
+			// Render Decay health
+			RenderFillRect(gRenderer, uiX-camX, uiY-camY, (barWidth*this->healthDecay)/this->healthMax, barHeight, {30, 60, 30} );
 		}
 
-		int barWidth = 55;
-		// Mana
+		// Health bar on Mobes
 		{
-			// Mana bar
-			int barSpacing = 5;
-			int uiX = screenWidth * 0.008;
-			int uiY = screenHeight * 1.00 - barSpacing - 8 * 1;
-			int tempN = this->dashCooldown - this->dashCoolCounter;
-
-			//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
-			//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
-
-			// Render Mana, bg
-			SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
-			SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
-
-			// Render Mana
-			tempRect = {uiX, uiY, ((barWidth*this->mana)/this->maxMana), 8};
-			SDL_SetRenderDrawColor(gRenderer, 0, 90, 200, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
-
-			// Render Mana, border
-			tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
-			SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-			SDL_RenderDrawRect(gRenderer, &tempRect);
+			// Render health
+			RenderFillRect(gRenderer, uiX-camX, uiY-camY, (barWidth*this->health)/this->healthMax, barHeight, {30, 200, 30} );
 		}
 
-		// Dash counter
-		{
-			// Dash bar
-			int barSpacing = 5;
-			int uiX = screenWidth * 0.008;
-			int uiY = screenHeight * 1.00 - barSpacing - 8 * 2;
-			int tempN = this->dashCooldown - this->dashCoolCounter;
 
-			//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
-			//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
+	}
 
-			// Render dash, bg
-			SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
-			SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
+	// Bars origin variables
+	int barWidth = 55;
+	int barMarginW = screenWidth * 0.004;
+	int uiX = screenWidth * 0.02;
+	//int uiX = screenWidth * 1.00 - barWidth - barMarginW;
 
-			// Render dash
-			tempRect = {uiX, uiY, (((barWidth*tempN)/this->dashCooldown)), 8};
-			SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
+	// Mana
+	{
+		// Mana bar
+		int barSpacing = 5;
+		int uiY = screenHeight * 0.02 + 8 * 1;
+		//int uiY = screenHeight * 0.02 - barSpacing - 8 * 1;
+		int tempN = this->dashCooldown - this->dashCoolCounter;
 
-			// Render dash, border
-			tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
-			SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-			SDL_RenderDrawRect(gRenderer, &tempRect);
-		}
+		//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
+		//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
 
-		// Parry CD
-		{
-			// Dash bar
-			int barSpacing = 5;
-			int uiX = screenWidth * 0.008;
-			int uiY = screenHeight * 1.00 - barSpacing - 8 * 3;
-			int tempN = this->parryCDTimer - this->parryCDMax;
+		// Render Mana, bg
+		SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
+		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
 
-			//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
-			//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
+		// Render Mana
+		tempRect = {uiX, uiY, ((barWidth*this->mana)/this->maxMana), 8};
+		SDL_SetRenderDrawColor(gRenderer, 0, 90, 200, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
 
-			// Render dash, bg
-			SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->parryCDMax)/this->parryCDMax), 8};
-			SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
+		// Render Mana, border
+		tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
+		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+		SDL_RenderDrawRect(gRenderer, &tempRect);
+	}
 
-			// Render dash
-			tempRect = {uiX, uiY, (((barWidth*(-tempN))/this->parryCDMax)), 8};
-			SDL_SetRenderDrawColor(gRenderer, 0, 220, 220, 255);
-			SDL_RenderFillRect(gRenderer, &tempRect);
+	// Dash counter
+	{
+		// Dash bar
+		int barSpacing = 5;
+		int uiY = screenHeight * 0.02 + 8 * 2;
+		//int uiY = screenHeight * 0.02 - barSpacing - 8 * 2;
+		int tempN = this->dashCooldown - this->dashCoolCounter;
 
-			// Render dash, border
-			tempRect = {uiX, uiY, ((barWidth*this->parryCDMax)/this->parryCDMax), 8};
-			SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-			SDL_RenderDrawRect(gRenderer, &tempRect);
+		//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
+		//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
 
-			// Render Parry, border
-			tempRect = {uiX, uiY, (barWidth*this->parryCDMax)/this->parryCDMax, 8};
-			SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
-			SDL_RenderDrawRect(gRenderer, &tempRect);
-		}
+		// Render dash, bg
+		SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
+		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
+
+		// Render dash
+		tempRect = {uiX, uiY, (((barWidth*tempN)/this->dashCooldown)), 8};
+		SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
+
+		// Render dash, border
+		tempRect = {uiX, uiY, ((barWidth*this->maxMana)/this->maxMana), 8};
+		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+		SDL_RenderDrawRect(gRenderer, &tempRect);
+	}
+
+	// Parry CD
+	{
+		// Dash bar
+		int barSpacing = 5;
+		int uiY = screenHeight * 0.02 + 8 * 3;
+		//int uiY = screenHeight * 0.02 - barSpacing - 8 * 3;
+		int tempN = this->parryCDTimer - this->parryCDMax;
+
+		//gText.loadFromRenderedText(gRenderer, "Dash CD ", {255,255,255}, gFont12);
+		//gText.render(gRenderer,  uiX-gText.getWidth()-2, uiY, gText.getWidth(), gText.getHeight());
+
+		// Render dash, bg
+		SDL_Rect tempRect = {uiX, uiY, ((barWidth*this->parryCDMax)/this->parryCDMax), 8};
+		SDL_SetRenderDrawColor(gRenderer, 60, 60, 60, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
+
+		// Render dash
+		tempRect = {uiX, uiY, (((barWidth*(-tempN))/this->parryCDMax)), 8};
+		SDL_SetRenderDrawColor(gRenderer, 0, 220, 220, 255);
+		SDL_RenderFillRect(gRenderer, &tempRect);
+
+		// Render dash, border
+		tempRect = {uiX, uiY, ((barWidth*this->parryCDMax)/this->parryCDMax), 8};
+		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+		SDL_RenderDrawRect(gRenderer, &tempRect);
+
+		// Render Parry, border
+		tempRect = {uiX, uiY, (barWidth*this->parryCDMax)/this->parryCDMax, 8};
+		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+		SDL_RenderDrawRect(gRenderer, &tempRect);
 	}
 
 	// Hearts
@@ -1616,7 +1574,10 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 									  &rItems[24], 0, NULL);
 		}*/
 	}
+}
 
+void Players::RenderUIText(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel)
+{
 	// Used by all 3 below
 	int marginW = 32;
 	int marginH = 32*2 + 4;
@@ -1625,34 +1586,143 @@ void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentL
 	int tempY;
 	std::stringstream tempsi;
 
-
 	// Text UI
 	{
-		// Highscore text
-		tempsi.str( std::string() );
-		tempsi << "Highscore: " << this->highscore;
-		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {244, 144, 20}, gFont12);
-		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0, gText.getWidth(), gText.getHeight());
+		// Top right of screen
+		{
+			// Highscore text
+			tempsi.str( std::string() );
+			tempsi << "Highscore: " << this->highscore;
+			gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {244, 144, 20}, gFont12);
+			gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0, gText.getWidth(), gText.getHeight());
 
-		tempsi.str( std::string() );
-		tempsi << "Score: " << this->score;
-		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*1, gText.getWidth(), gText.getHeight());
+			tempsi.str( std::string() );
+			tempsi << "Score: " << this->score;
+			gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
+			gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*1, gText.getWidth(), gText.getHeight());
+		}
 
-		tempsi.str( std::string() );
-		tempsi << "Level: " << CurrentLevel;
-		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*2, gText.getWidth(), gText.getHeight());
+		// Bottom left of screen
+		{
+			tempsi.str( std::string() );
+			tempsi << "Stats";
+			gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {244, 144, 44}, gFont20);
+			gText.render(gRenderer, screenWidth * 0.02, screenHeight - gText.getHeight() * 5, gText.getWidth(), gText.getHeight());
 
-		tempsi.str( std::string() );
-		tempsi << "Damage +" << this->damage;
-		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*3, gText.getWidth(), gText.getHeight());
+			tempsi.str( std::string() );
+			tempsi << "Level: " << CurrentLevel;
+			gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
+			gText.render(gRenderer, screenWidth * 0.02, screenHeight - gText.getHeight() * 6, gText.getWidth(), gText.getHeight());
 
+			tempsi.str( std::string() );
+			tempsi << "Damage +" << this->damage;
+			gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
+			gText.render(gRenderer, screenWidth * 0.02, screenHeight - gText.getHeight() * 5, gText.getWidth(), gText.getHeight());
+
+			tempsi.str( std::string() );
+			tempsi << "Cast Damage +" << this->castDamage;
+			gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
+			gText.render(gRenderer, screenWidth * 0.02, screenHeight - gText.getHeight() * 4, gText.getWidth(), gText.getHeight());
+		}
+
+		// Bottom right of screen: ammo
+		float marginH = 16;
+
+		// Pistol ammo icon
+		gItems.setColor(255,255,255);
+		gItems.render(gRenderer,
+				screenWidth * 1.00 - 100 - 32*2,
+				screenHeight * 1.00 - 32 - marginH,
+				32, 32,
+				&rItems[10]);
+
+		// Rifle ammo icon
+		gItems.render(gRenderer,
+				screenWidth * 1.00 - 100,
+				screenHeight * 1.00 - 32 - marginH,
+				32, 32,
+				&rItems[11]);
+
+		// Pistol ammo text
 		tempsi.str( std::string() );
-		tempsi << "Cast Damage +" << this->castDamage;
+		tempsi << ammoPistol;
 		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth * 1.00 - gText.getWidth(), 0 + 12*4, gText.getWidth(), gText.getHeight());
+		gText.render(gRenderer, screenWidth * 1.00 - 100 - 32*1,
+				screenHeight * 1.00 - 32 - marginH,
+				gText.getWidth(), gText.getHeight());
+
+		// Shotgun ammo text
+		tempsi.str( std::string() );
+		tempsi << ammoShotgun;
+		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
+		gText.render(gRenderer, screenWidth * 1.00 - 100 + 32,
+				screenHeight * 1.00 - 32 - marginH,
+				gText.getWidth(), gText.getHeight());
+	}
+}
+
+void Players::RenderDeathScreen(SDL_Renderer *gRenderer, int camX, int camY)
+{
+	// Show death screen if not alive
+	if (!this->alive){
+		// Continue YES or NO Screen
+		if (deathScreen)
+		{
+			// Render Text
+			gText.loadFromRenderedText(gRenderer, "You have died. Continue?", {255,255,255}, gFont12);
+			gText.render(gRenderer, screenWidth/2-gText.getWidth()/2, screenHeight/2-gText.getHeight()/2-50, gText.getWidth(), gText.getHeight());
+
+			// Render buttons: Yes
+			SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+			SDL_RenderDrawRect(gRenderer, &continueButton[0]);
+
+			// Render buttons: No
+			SDL_SetRenderDrawColor(gRenderer, 255, 0, 0, 255);
+			SDL_RenderDrawRect(gRenderer, &continueButton[1]);
+
+			// Render buttons: ResetHighScore
+			SDL_SetRenderDrawColor(gRenderer, 0, 255, 255, 255);
+			SDL_RenderDrawRect(gRenderer, &continueButton[2]);
+
+			// Render button texts: Yes or No
+			gText.loadFromRenderedText(gRenderer, "Yes", {255,255,255}, gFont12);
+			gText.render(gRenderer,  continueButton[0].x+continueButton[0].w/2-gText.getWidth()/2,
+									 continueButton[0].y+continueButton[0].h/2-gText.getHeight()/2,
+									 gText.getWidth(), gText.getHeight());
+
+			gText.loadFromRenderedText(gRenderer, "No", {255,255,255}, gFont12);
+			gText.render(gRenderer,  continueButton[1].x+continueButton[1].w/2-gText.getWidth()/2,
+									 continueButton[1].y+continueButton[1].h/2-gText.getHeight()/2,
+									 gText.getWidth(), gText.getHeight());
+
+			// Render Text
+			gText.loadFromRenderedText(gRenderer, "Reset High Scores", {255,255,255}, gFont12);
+			gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
+									 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
+									 gText.getWidth(), gText.getHeight());
+		// Player Menu screen
+		}else{
+
+			// Render buttons: Play
+			SDL_SetRenderDrawColor(gRenderer, 0, 255, 0, 255);
+			SDL_RenderDrawRect(gRenderer, &continueButton[0]);
+
+			// Render buttons: ResetHighScore
+			SDL_SetRenderDrawColor(gRenderer, 0, 255, 255, 255);
+			SDL_RenderDrawRect(gRenderer, &continueButton[2]);
+
+			// Render Text
+			gText.loadFromRenderedText(gRenderer, "PLAY", {255,255,255}, gFont12);
+			gText.render(gRenderer, continueButton[0].x+continueButton[0].w/2-gText.getWidth()/2,
+									 continueButton[0].y+continueButton[0].h/2-gText.getHeight()/2,
+									 gText.getWidth(), gText.getHeight());
+
+			// Render Text
+			//gText.loadFromRenderedText(gRenderer, "Reset High Scores", color, gFont12);
+			//gText.render(gRenderer, continueButton[2].x+continueButton[2].w/2-gText.getWidth()/2,
+			//						 continueButton[2].y+continueButton[2].h/2-gText.getHeight()/2,
+			//						 gText.getWidth(), gText.getHeight());
+		}
 	}
 }
 
@@ -2088,6 +2158,20 @@ void Players::IncreaseHearts(int value) {
 	this->hearts += value;
 	if (this->hearts > this->heartsMax) {
 		this->hearts = this->heartsMax;
+	}
+}
+
+void Players::IncreasePistolAmmo(int value) {
+	this->ammoPistol += value;
+	if (this->ammoPistol > this->ammoPistolMax) {
+		this->ammoPistol = this->ammoPistolMax;
+	}
+}
+
+void Players::IncreaseShotgunAmmo(int value) {
+	this->ammoShotgun += value;
+	if (this->ammoShotgun > this->ammoShotgunMax) {
+		this->ammoShotgun = this->ammoShotgunMax;
 	}
 }
 

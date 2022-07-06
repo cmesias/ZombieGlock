@@ -29,10 +29,6 @@ public:
 	int count;
 	const int max = 100;
 
-	// Jump attack
-	bool jumpAttack;
-	float jumpCD;
-
 	// Hurt animation variables
 	float hurtTimer;
 	float hurtSpe;
@@ -116,6 +112,8 @@ public:	// Core Functions
 			Map &map, int mex, int mey,
 			int camx, int camy, bool playerAlive);
 
+	void UpdateCollisionMobs(Mob mob[], int i);
+
 	void UpdateEditor(Mob mob[], int mex, int mey, int camx, int camy);
 
 	void Move(Mob mob[], std::string direction);
@@ -133,9 +131,9 @@ public:	// Core Functions
 	void RenderHand(SDL_Renderer *gRenderer, Mob mob[], int newMx, int newMy,
 						  int mex, int mey, int camx, int camy);
 
-	void Stun(Mob mob[], int i);
+private: // Animations
 
-	void Hurt(Mob mob[], int i);
+	void DoCDTimer(Mob mob[], int i);
 
 	void DoIdleAnim(Mob mob[], int i);
 
@@ -143,14 +141,20 @@ public:	// Core Functions
 
 	// This will ovveride when idle, and when on cooldown state (animState -1 & 0)
 	void DoHurtAnim(Mob mob[], int i);
-
-	void ResetDeathAnim(Mob mob[], int i);
 	void DoDeathAnim(Mob mob[], int i);
 	void DoMushRoomVFX(Mob mob[], int i, Particle particle[], Particle &p_dummy);
 
 	bool startHurtAnim;
 	bool startDeathAnim;
 	float delayRemoveMobTimer;
+
+public:	// Animations II
+
+	void Stun(Mob mob[], int i);
+
+	void Hurt(Mob mob[], int i);
+
+	void ResetDeathAnim(Mob mob[], int i);
 
 public:	// Getter functions
 

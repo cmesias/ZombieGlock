@@ -36,7 +36,12 @@
 
 // TODO 7/5/2022
 //		[x] - added 3 weapons: Pistol, Rifle, Shotgun
-//		[ ] - Add waves,and add more monsters once all monsters are killed
+//		[ ] - Add waves
+//		[ ] - Add lives
+//		[ ] - Change Mushroom to Zombie
+//		[ ] - Add reload to pistol
+//		[ ] - Add reload to rifle
+//		[ ] - Add reload to shotgun
 
 
 void PlayGame::Init() {
@@ -1439,26 +1444,43 @@ void PlayGame::RenderUI(SDL_Renderer *gRenderer, LWindow &gWindow)
 	// Render "E" prompt on doors to new areas
 	tl.RenderUI(gRenderer, tile, camx, camy);
 
-	// Render Player Health
+	// Render player UI
 	player.RenderUI(gRenderer, camx, camy, this->LevelToLoad);
 
 	// Render number of enemies left
 	std::stringstream tempss;
+	float rectW;
 	tempss << "Eliminate: "<< mb.count;
-	fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {35, 144, 244}, fonts.gFont12);
+	fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255, 255, 255}, fonts.gFont12);
 	fonts.gText.setAlpha(255);
-	fonts.gText.render(gRenderer, screenWidth * 1.00 - fonts.gText.getWidth(), screenHeight * 0.25,
-			fonts.gText.getWidth(), fonts.gText.getHeight());
+
+		// Render BG
+		gRect.setAlpha(110);
+		rectW = fonts.gText.getWidth()*2;
+		gRect.render(gRenderer, screenWidth * 0.50 - fonts.gText.getWidth()/2,
+				screenHeight * 0.04,
+				fonts.gText.getWidth(), fonts.gText.getHeight());
+
+		fonts.gText.render(gRenderer, screenWidth * 0.50 - fonts.gText.getWidth()/2,
+				screenHeight * 0.04,
+				fonts.gText.getWidth(), fonts.gText.getHeight());
 
 	// Render number of jars left
-	{
-		tempss.str(std::string());
-		tempss << "Destroy: "<< jarsLeft.size();
-		fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {35, 144, 244}, fonts.gFont12);
-		fonts.gText.setAlpha(255);
-		fonts.gText.render(gRenderer, screenWidth * 1.00 - fonts.gText.getWidth(), screenHeight * 0.25 + (fonts.gText.getHeight()*1),
+	tempss.str(std::string());
+	tempss << "Destroy: "<< jarsLeft.size();
+	fonts.gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255, 255, 255}, fonts.gFont12);
+	fonts.gText.setAlpha(255);
+
+		// Render BG
+		gRect.setAlpha(110);
+		rectW = fonts.gText.getWidth()*2;
+		gRect.render(gRenderer, screenWidth * 0.50 - fonts.gText.getWidth()/2,
+				screenHeight * 0.060,
 				fonts.gText.getWidth(), fonts.gText.getHeight());
-	}
+
+		fonts.gText.render(gRenderer, screenWidth * 0.50 - fonts.gText.getWidth()/2,
+				screenHeight * 0.060,
+				fonts.gText.getWidth(), fonts.gText.getHeight());
 }
 
 // Render debug information
@@ -2072,12 +2094,18 @@ void PlayGame::checkCollisionPlayerItem() {
 							item[i].alive = false;
 							ite.count--;
 
-							// Drop old sword
+							// Drop old weapon
 							ite.SpawnAndThrowItem(item,
+									item[i].x,
+									item[i].y,
+									old_sword_id,
+									0.0, 0.5);
+
+							/*ite.SpawnAndThrowItem(item,
 									player.getCenterX()-ite.rItems[old_sword_id].w/2,
 									player.getCenterY(),
 									old_sword_id,
-									0.0, 0.5);
+									0.0, 0.5);*/
 
 							// After checking for equipping state, every frame, stop equipping for Player
 							player.stopEquipState();
@@ -2096,6 +2124,40 @@ void PlayGame::checkCollisionPlayerItem() {
 
 						// Increase player Gold keys
 						player.IncreaseHealth(25);
+
+						// After checking for equipping state, every frame, stop equipping for Player
+						player.stopEquipState();
+
+						// play sound effect
+						Mix_PlayChannel(-1, settings.sCastHitBoss, 0);
+					}
+
+					// Pistol ammo
+					else if (item[i].id == 10) {
+
+						// Remove item
+						item[i].alive = false;
+						ite.count--;
+
+						// Increase player Gold keys
+						player.IncreasePistolAmmo(12);
+
+						// After checking for equipping state, every frame, stop equipping for Player
+						player.stopEquipState();
+
+						// play sound effect
+						Mix_PlayChannel(-1, settings.sCastHitBoss, 0);
+					}
+
+					// Shotgun ammo
+					else if (item[i].id == 11) {
+
+						// Remove item
+						item[i].alive = false;
+						ite.count--;
+
+						// Increase player Gold keys
+						player.IncreaseShotgunAmmo(5);
 
 						// After checking for equipping state, every frame, stop equipping for Player
 						player.stopEquipState();

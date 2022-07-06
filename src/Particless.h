@@ -207,6 +207,16 @@ public:	// functions
 	// Applies to all particles
 	void Update(Particle particle[], int mapX, int mapY, int mapW, int mapH);
 
+	void UpdateSpinParticle(Particle particle[], int i);
+
+	void UpdateDeathOnTimer(Particle particle[], int i);
+
+	void UpdateDeathOnAlpha(Particle particle[], int i);
+
+	void UpdateMapCollisionCheckDeath(Particle particle[], int i,
+			int mapLeft, int mapRight,
+			int mapTop, int mapBottom);
+
 	void UpdateBullets(Particle particle[], int mapX, int mapY, int mapW, int mapH);
 
 	void RenderBullets(Particle particle[], int camX, int camY, float playerZ, SDL_Renderer* gRenderer);

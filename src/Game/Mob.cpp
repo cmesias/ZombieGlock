@@ -55,10 +55,6 @@ void Mob::Init(Mob mob[]) {
 		mob[i].chargeTime 		= this->chargeTimeStart;
 		mob[i].constantFiringTimer = 0;
 
-		// Jump attack
-		mob[i].jumpAttack 			= false;
-		mob[i].jumpCD 				= 0.0;
-
 		// Animations
 		mob[i].animSpeed			= 15;
 		mob[i].animTimer			= 0;
@@ -253,43 +249,8 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 				mob[i].healthDecay -= 0.25;
 			}
 
-
-			// mob circle collision check with other mobs
-			/*for (int j = 0; j < this->max; j++) {
-				if (i != j) {
-					if (mob[j].alive) {
-						float bmx = mob[j].x+mob[j].w/2;
-						float bmy = mob[j].y+mob[j].h/2;
-						float bmx2 = mob[i].x+mob[i].w/2;
-						float bmy2 = mob[i].y+mob[i].h/2;
-						float angle = atan2(bmy - bmy2,bmx - bmx2);
-						angle = angle * (180 / 3.1416);
-						if (angle < 0) {
-							angle = 360 - (-angle);
-						}
-						float radians = (3.1415926536/180)*(angle);
-						float Cos = floor(cos(radians)*10+0.5)/10;
-						float Sin = floor(sin(radians)*10+0.5)/10;
-						float distance = sqrt((bmx - bmx2) * (bmx - bmx2)+
-											  (bmy - bmy2) * (bmy - bmy2));
-						if (distance <= 0.01) {
-							distance = 0.01;
-						}
-						if (distance < mob[i].w/2 + mob[j].w/2) {
-							//mob[i].x -= 1 * Cos;
-							//mob[i].vX = mob[i].vX * -1;
-
-							// This will move both mobs away from each other so they don't overlap
-							mob[j].x += 1 * Cos;
-
-							// This still only bounces the mob thats being launched
-							//mob[j].vX = mob[j].vX * -1.2;
-
-							//mob[i].y -= 1 * Sin;
-						}
-					}
-				}
-			}*/
+			// Update circle collision w/ other Mobs
+			//UpdateCollisionMobs(mob, i);
 
 			// Animation
 			{
@@ -319,21 +280,8 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 				// Start idle animation
 				this->DoIdleAnim(mob, i);
 
-				// If cool down timer greater than 0
-				if (mob[i].coolDownTimer > 0) {
-
-					// Start countdown
-					mob[i].coolDownTimer --;
-				}
-
-				// Countdown finished
-				else {
-					// Reset cool down timer
-					mob[i].coolDownTimer = this->coolDownTimeStart;
-
-					// Reset animation state
-					mob[i].animState = 0;
-				}
+				// Start cooldown timer
+				this->DoCDTimer(mob, i);
 
 				// If hurt, override with Hurt animation
 				this->DoHurtAnim(mob, i);
@@ -344,29 +292,8 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 				// Start idle animation
 				this->DoIdleAnim(mob, i);
 
-				// If cool down timer greater than 0
-				if (mob[i].coolDownTimer > 0) {
-
-					// Start countdown
-					mob[i].coolDownTimer -= mob[i].atkSpe;
-
-					// Reduce jump attack CD everytime we come to this state
-					if (mob[i].jumpAttack) {
-						mob[i].jumpCD--;
-						if (mob[i].jumpCD <= 0) {
-							mob[i].jumpAttack = false;
-						}
-					}
-				}
-
-				// Countdown finished
-				else {
-					// Reset cool down timer
-					mob[i].coolDownTimer = this->coolDownTimeStart;
-
-					// Reset animation state
-					mob[i].animState = 0;
-				}
+				// Start cooldown timer
+				this->DoCDTimer(mob, i);
 
 				// If hurt, override with Hurt animation
 				this->DoHurtAnim(mob, i);
@@ -412,17 +339,6 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 
 					// Start Walk animation
 					this->DoWalkAnim(mob, i);
-
-					// Jump attack
-					if (!mob[i].jumpAttack) {
-						mob[i].jumpAttack = true;
-						mob[i].jumpCD = 60 * 3;
-					}
-					if (mob[i].jumpAttack) {
-
-						mob[i].vX += mob[i].moveSpe * (mob[i].bmx - mob[i].bmx2) / mob[i].distance;
-						mob[i].vY += mob[i].moveSpe * (mob[i].bmy - mob[i].bmy2) / mob[i].distance;
-					}
 				}
 
 				// Not Alert
@@ -856,6 +772,46 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 	// Other classes:
 }
 
+void UpdateCollisionMob(Mob mob[], int i) {
+
+	// mob circle collision check with other mobs
+	/*for (int j = 0; j < this->max; j++) {
+		if (i != j) {
+			if (mob[j].alive) {
+				float bmx = mob[j].x+mob[j].w/2;
+				float bmy = mob[j].y+mob[j].h/2;
+				float bmx2 = mob[i].x+mob[i].w/2;
+				float bmy2 = mob[i].y+mob[i].h/2;
+				float angle = atan2(bmy - bmy2,bmx - bmx2);
+				angle = angle * (180 / 3.1416);
+				if (angle < 0) {
+					angle = 360 - (-angle);
+				}
+				float radians = (3.1415926536/180)*(angle);
+				float Cos = floor(cos(radians)*10+0.5)/10;
+				float Sin = floor(sin(radians)*10+0.5)/10;
+				float distance = sqrt((bmx - bmx2) * (bmx - bmx2)+
+									  (bmy - bmy2) * (bmy - bmy2));
+				if (distance <= 0.01) {
+					distance = 0.01;
+				}
+				if (distance < mob[i].w/2 + mob[j].w/2) {
+					//mob[i].x -= 1 * Cos;
+					//mob[i].vX = mob[i].vX * -1;
+
+					// This will move both mobs away from each other so they don't overlap
+					mob[j].x += 1 * Cos;
+
+					// This still only bounces the mob thats being launched
+					//mob[j].vX = mob[j].vX * -1.2;
+
+					//mob[i].y -= 1 * Sin;
+				}
+			}
+		}
+	}*/
+}
+
 void Mob::UpdateEditor(Mob mob[], int mex, int mey, int camx, int camy) {
 	for (int i = 0; i < this->max; i++) {
 		if (mob[i].alive) {
@@ -1076,10 +1032,10 @@ void Mob::RenderDebug(SDL_Renderer *gRenderer, Mob mob[], int camx, int camy) {
 			/// TEXT UNDER HERE
 
 			// Render Text
-			std::stringstream tempss;
+			/*std::stringstream tempss;
 			tempss << "ja: " << mob[i].jumpAttack << ", jcd: " << mob[i].jumpCD;
 			gText.loadFromRenderedText(gRenderer, tempss.str().c_str(), {255, 255, 255}, gFont12);
-			gText.render(gRenderer, mob[i].xR-gText.getWidth()-camx, mob[i].yR-gText.getHeight()-camy, gText.getWidth(), gText.getHeight());
+			gText.render(gRenderer, mob[i].xR-gText.getWidth()-camx, mob[i].yR-gText.getHeight()-camy, gText.getWidth(), gText.getHeight());*/
 
 		}
 	}
@@ -1141,6 +1097,25 @@ void Mob::Hurt(Mob mob[], int i) {
 	// Set animation state to cooldown (-1)
 	mob[i].animState = -2;*/
 
+}
+
+void Mob::DoCDTimer(Mob mob[], int i)
+{
+	// If cool down timer greater than 0
+	if (mob[i].coolDownTimer > 0) {
+
+		// Start countdown
+		mob[i].coolDownTimer -= mob[i].atkSpe;
+	}
+
+	// Countdown finished
+	else {
+		// Reset cool down timer
+		mob[i].coolDownTimer = this->coolDownTimeStart;
+
+		// Reset animation state
+		mob[i].animState = 0;
+	}
 }
 
 void Mob::DoIdleAnim(Mob mob[], int i)

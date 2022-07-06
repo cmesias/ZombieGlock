@@ -44,7 +44,7 @@ public:
 	bool rightclick;
 	bool test;
 
-private:	// Weapons
+private:	// Inventory
 
 public:	// resources
 	// Local resources
@@ -348,6 +348,12 @@ private:
 	// Parry
 	float parryLength;		// Parry length: 15 default
 
+private:	// Weapons
+
+	int ammoPistol; const int ammoPistolMax = 999;
+	int ammoRifle; const int ammoRifleMax = 999;
+	int ammoShotgun; const int ammoShotgunMax = 999;
+
 private:	// TODO [ ] - Save in file
 
 	/* Save into player save data
@@ -420,6 +426,12 @@ public:	// Mutator functions
 
 	// Increase Score
 	void IncreaseScore(float value);
+
+	// Increase pistol ammo
+	void IncreasePistolAmmo(int value = 1);
+
+	// Increase shotgun ammo
+	void IncreaseShotgunAmmo(int value = 1);
 
 	// Shorten parry cool down
 	void ShortenParryCD(float value);
@@ -585,6 +597,12 @@ public:	// functions
 				SDL_Color color, int &PARTICLES);
 
 	void RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel);
+
+	void RenderUIBars(SDL_Renderer *gRenderer, int camX, int camY);
+
+	void RenderUIText(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel);
+
+	void RenderDeathScreen(SDL_Renderer *gRenderer, int camX, int camY);
 
 	void RenderDebug(SDL_Renderer* gRenderer, int camX, int camY);
 
