@@ -446,7 +446,7 @@ void Item::setStatsBasedOnType(Item item[], int i) {
 	{
 		// Pistol
 		if (item[i].id == 0) {
-			item[i].damage 			= 26;
+			item[i].damage 			= 80;
 			item[i].slashAtkSpe 	= 6.75;
 		}
 
@@ -458,7 +458,7 @@ void Item::setStatsBasedOnType(Item item[], int i) {
 
 		// Shotgun
 		if (item[i].id == 2) {
-			item[i].damage 			= 35;
+			item[i].damage 			= 50;
 			item[i].slashAtkSpe 	= 1.1;
 		}
 

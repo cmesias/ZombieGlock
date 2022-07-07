@@ -135,9 +135,20 @@ void Players::Init(float spawnX, float spawnY, std::string newName){
 	this->knockBackPower		= 1.58;
 
 	// Weapons
-	this->ammoPistol = 0;
-	this->ammoRifle = 0;
-	this->ammoShotgun = 0;
+	this->ammoPistol 			= 90;
+	this->ammoRifle 			= 120;
+	this->ammoShotgun 			= 45;
+
+	// Weapons
+	this->magazinePistol 		= 12;
+	this->magazineRifle 		= 24;
+	this->magazineShotgun 		= 5;
+
+	// Reloading
+	this->reloadTimer 			= 0.0;
+	this->pistolReloadSpe 		= 15.0;
+	this->rifleReloadSpe 		= 9.86;
+	this->shotgunReloadSpe 		= 4.0;
 
 	// Set default sword: fists
 	ResetLivesAndPlayer();
@@ -334,22 +345,36 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 			// Stop trigger
 			initialshot = false;
 
-			// Start delay before each shot
-			if (!shootDelay)
-			{
-				shootDelay = true;
+			// If we have enough bullets
+			if (magazinePistol > 0) {
 
-				// Set bullet shadow offset
-				float particleShadowOffset = 14;
+				// Start delay before each shot
+				if (!shootDelay)
+				{
+					shootDelay = true;
 
-				// spawn: Pistol bullet Particle
-				p_dummy.spawnPistolBullet(particle, 0,
-						getCenterX() -4, getCenterY(),
-						4, 4,
-						this->angle, this->damage, 9);
+					// Set bullet shadow offset
+					float particleShadowOffset = 14;
+
+					// spawn: Pistol bullet Particle
+					p_dummy.spawnPistolBullet(particle, 0,
+							getCenterX() -4, getCenterY(),
+							4, 4,
+							this->angle, this->damage, 9);
+
+					// play audio
+					Mix_PlayChannel(1, settings->sCast, 0);
+
+					// decrease magazine size
+					magazinePistol--;
+				}
+			}
+
+			// Not enough bullets, play SFX for trigger
+			else {
 
 				// play audio
-				Mix_PlayChannel(1, settings->sCast, 0);
+				Mix_PlayChannel(1, settings->sTrigger, 0);
 			}
 		}
 	}
@@ -360,23 +385,36 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 		// Shoot particle
 		if (initialshot)
 		{
+			// If we have enough bullets
+			if (magazineRifle > 0) {
 
-			// Start delay before each shot
-			if (!shootDelay)
-			{
-				shootDelay = true;
+				// Start delay before each shot
+				if (!shootDelay)
+				{
+					shootDelay = true;
 
-				// Set bullet shadow offset
-				float particleShadowOffset = 14;
+					// Set bullet shadow offset
+					float particleShadowOffset = 14;
 
-				// spawn: Pistol bullet Particle
-				p_dummy.spawnPistolBullet(particle, 0,
-						getCenterX() -4, getCenterY(),
-						4, 4,
-						this->angle, this->damage, 9);
+					// spawn: Pistol bullet Particle
+					p_dummy.spawnPistolBullet(particle, 0,
+							getCenterX() -4, getCenterY(),
+							4, 4,
+							this->angle, this->damage, 9);
+
+					// play audio
+					Mix_PlayChannel(1, settings->sCast, 0);
+
+					// decrease magazine size
+					magazineRifle--;
+				}
+			}
+
+			// If not enough bullets
+			else {
 
 				// play audio
-				Mix_PlayChannel(1, settings->sCast, 0);
+				Mix_PlayChannel(1, settings->sTrigger, 0);
 			}
 		}
 	}
@@ -390,37 +428,54 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 			// Stop trigger
 			initialshot = false;
 
-			// Start delay before each shot
-			if (!shootDelay)
-			{
-				shootDelay = true;
+			// If we have enough bullets
+			if (magazineShotgun > 0) {
 
-				// Set bullet shadow offset
-				float particleShadowOffset = 14;
+				// Start delay before each shot
+				if (!shootDelay)
+				{
+					shootDelay = true;
 
-				// spawn: Pistol bullet Particle
-				p_dummy.spawnPistolBullet(particle, 0,
-						getCenterX() -4, getCenterY(),
-						4, 4,
-						this->angle-5, this->damage, 9);
+					// Set bullet shadow offset
+					float particleShadowOffset = 14;
 
-				// spawn: Pistol bullet Particle
-				p_dummy.spawnPistolBullet(particle, 0,
-						getCenterX() -4, getCenterY(),
-						4, 4,
-						this->angle, this->damage, 9);
+					// spawn: Pistol bullet Particle
+					p_dummy.spawnPistolBullet(particle, 0,
+							getCenterX() -4, getCenterY(),
+							4, 4,
+							this->angle-5, this->damage, 9);
 
-				// spawn: Pistol bullet Particle
-				p_dummy.spawnPistolBullet(particle, 0,
-						getCenterX() -4, getCenterY(),
-						4, 4,
-						this->angle+5, this->damage, 9);
+					// spawn: Pistol bullet Particle
+					p_dummy.spawnPistolBullet(particle, 0,
+							getCenterX() -4, getCenterY(),
+							4, 4,
+							this->angle, this->damage, 9);
+
+					// spawn: Pistol bullet Particle
+					p_dummy.spawnPistolBullet(particle, 0,
+							getCenterX() -4, getCenterY(),
+							4, 4,
+							this->angle+5, this->damage, 9);
+
+					// play audio
+					Mix_PlayChannel(1, settings->sCast, 0);
+
+					// decrease magazine size
+					magazineShotgun--;
+				}
+			}
+
+			// If not enough bullets
+			else {
 
 				// play audio
-				Mix_PlayChannel(1, settings->sCast, 0);
+				Mix_PlayChannel(1, settings->sTrigger, 0);
 			}
 		}
 	}
+
+	// Handle reloading
+	UpdateReloading();
 
 	// Shoot delay
 	if (shootDelay) {
@@ -483,6 +538,110 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 			powerUp = 0;
 		}
 	}*/
+}
+
+void Players::UpdateReloading() {
+
+	// Handle reloading
+	if (reload) {
+		reloadTimer += equippedWeaponReloadSpeed;
+		if (reloadTimer > 60) {
+			reloadTimer = 0;
+
+			// If Pistol equipped
+			if (itemIndex == 0) {
+
+				// Check if magazine is full
+				if (magazinePistol < 12) {
+
+					// Decrease ammo for current weapon
+					if (ammoPistol > 0) {
+						ammoPistol--;
+
+						// Increase magazine clip for current weapon
+						magazinePistol++;
+
+						// Play reload SFX
+						Mix_PlayChannel(1, settings->sPistolReload, 0);
+					}
+
+					// No more ammo, stop reloading
+					else {
+						reload = false;
+						reloadTimer = 0;
+					}
+				}
+
+				// Magazine clip is full, stop reload, reset timer
+				else {
+					reload = false;
+					reloadTimer = 0;
+				}
+			}
+
+			// If Rifle equipped
+			if (itemIndex == 1) {
+
+				// Check if magazine is full
+				if (magazineRifle < 30) {
+
+					// Decrease ammo for current weapon
+					if (ammoPistol > 0) {
+						ammoPistol--;
+
+						// Increase magazine clip for current weapon
+						magazineRifle++;
+
+						// Play reload SFX
+						Mix_PlayChannel(1, settings->sPistolReload, 0);
+					}
+
+					// No more ammo, stop reloading
+					else {
+						reload = false;
+						reloadTimer = 0;
+					}
+				}
+
+				// Magazine clip is full, stop reload, reset timer
+				else {
+					reload = false;
+					reloadTimer = 0;
+				}
+			}
+
+			// If Shotgun equipped
+			if (itemIndex == 2) {
+
+				// Check if magazine is full
+				if (magazineShotgun < 5) {
+
+					// Decrease ammo for current weapon
+					if (ammoShotgun > 0) {
+						ammoShotgun--;
+
+						// Increase magazine clip for current weapon
+						magazineShotgun++;
+
+						// Play reload SFX
+						Mix_PlayChannel(1, settings->sPistolReload, 0);
+					}
+
+					// No more ammo, stop reloading
+					else {
+						reload = false;
+						reloadTimer = 0;
+					}
+				}
+
+				// Magazine clip is full, stop reload, reset timer
+				else {
+					reload = false;
+					reloadTimer = 0;
+				}
+			}
+		}
+	}
 }
 
 // Update Player
@@ -1428,14 +1587,12 @@ void Players::Render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 
 void Players::RenderUI(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel)
 {
-
-	// Render player UI bars
 	RenderUIBars(gRenderer, camX, camY);
 
-	// Render Player UI text
 	RenderUIText(gRenderer, camX, camY, CurrentLevel);
 
-	// Render Player death screen prompt
+	RenderUIInventory(gRenderer, camX, camY, CurrentLevel);
+
 	RenderDeathScreen(gRenderer, camX, camY);
 
 }
@@ -1624,39 +1781,71 @@ void Players::RenderUIText(SDL_Renderer *gRenderer, int camX, int camY, int Curr
 			gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
 			gText.render(gRenderer, screenWidth * 0.02, screenHeight - gText.getHeight() * 4, gText.getWidth(), gText.getHeight());
 		}
+	}
+}
 
-		// Bottom right of screen: ammo
-		float marginH = 16;
+void Players::RenderUIInventory(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel)
+{
+	// Bottom right of screen: ammo
+	std::stringstream tempsi;
+	float marginH = 16;
 
-		// Pistol ammo icon
-		gItems.setColor(255,255,255);
+	// Pistol ammo icon
+	gItems.setColor(255,255,255);
+	gItems.render(gRenderer,
+			screenWidth * 1.00 - 100 - 32*2,
+			screenHeight * 1.00 - 32 - marginH,
+			32, 32,
+			&rItems[10]);
+
+	// Rifle ammo icon
+	gItems.render(gRenderer,
+			screenWidth * 1.00 - 100,
+			screenHeight * 1.00 - 32 - marginH,
+			32, 32,
+			&rItems[11]);
+
+	// Pistol ammo text
+	tempsi.str( std::string() );
+	tempsi << this->ammoPistol;
+	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
+	gText.render(gRenderer, screenWidth * 1.00 - 100 - 32*1,
+			screenHeight * 1.00 - 32 - marginH,
+			gText.getWidth(), gText.getHeight());
+
+	// Shotgun ammo text
+	tempsi.str( std::string() );
+	tempsi << this->ammoShotgun;
+	gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
+	gText.render(gRenderer, screenWidth * 1.00 - 100 + 32,
+			screenHeight * 1.00 - 32 - marginH,
+			gText.getWidth(), gText.getHeight());
+
+	// Render current weapon & amount of bullets in magazine for weapon
+	{
+		// Render current weapon
 		gItems.render(gRenderer,
-				screenWidth * 1.00 - 100 - 32*2,
-				screenHeight * 1.00 - 32 - marginH,
+				screenWidth * 1.00 - 100 - 32*3,
+				screenHeight * 1.00 - 32*2 - marginH,
 				32, 32,
-				&rItems[10]);
+				&rItems[itemIndex]);
 
-		// Rifle ammo icon
-		gItems.render(gRenderer,
-				screenWidth * 1.00 - 100,
-				screenHeight * 1.00 - 32 - marginH,
-				32, 32,
-				&rItems[11]);
+		// Determine magazine size to display
+		int tempMagSize = -1;
+		if (itemIndex == 0) {
+			tempMagSize = magazinePistol;
+		} else if (itemIndex == 1) {
+			tempMagSize = magazineRifle;
+		} else if (itemIndex == 2) {
+			tempMagSize = magazineShotgun;
+		}
 
-		// Pistol ammo text
+		// Render text
 		tempsi.str( std::string() );
-		tempsi << ammoPistol;
+		tempsi << tempMagSize;
 		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth * 1.00 - 100 - 32*1,
-				screenHeight * 1.00 - 32 - marginH,
-				gText.getWidth(), gText.getHeight());
-
-		// Shotgun ammo text
-		tempsi.str( std::string() );
-		tempsi << ammoShotgun;
-		gText.loadFromRenderedText(gRenderer, tempsi.str().c_str(), {255, 255, 255}, gFont12);
-		gText.render(gRenderer, screenWidth * 1.00 - 100 + 32,
-				screenHeight * 1.00 - 32 - marginH,
+		gText.render(gRenderer, screenWidth * 1.00 - 100 - 32*2,
+				screenHeight * 1.00 - 32*2 - marginH,
 				gText.getWidth(), gText.getHeight());
 	}
 }
@@ -1853,6 +2042,41 @@ void Players::OnKeyDown(SDL_Keycode sym )
 		// Activate Dash
 		ActivateDash();
 		break;
+	case SDLK_r: 					// Reload
+
+		// Pistol equipped
+		if (itemIndex == 0) {
+			// If magazine in pistol is less than 12
+			if (magazinePistol < 12 && ammoPistol > 0) {
+				if (!reload) {
+					equippedWeaponReloadSpeed = pistolReloadSpe;
+					reload = true;
+				}
+			}
+		}
+
+		// Rifle equipped
+		if (itemIndex == 1) {
+			// If magazine in Rifle is less than 30
+			if (magazineRifle < 30 && ammoPistol > 0) {
+				if (!reload) {
+					equippedWeaponReloadSpeed = rifleReloadSpe;
+					reload = true;
+				}
+			}
+		}
+
+		// Shotgun equipped
+		if (itemIndex == 2) {
+			// If magazine in Shotgun is less than 5
+			if (magazineShotgun < 5 && ammoShotgun > 0) {
+				if (!reload) {
+					equippedWeaponReloadSpeed = shotgunReloadSpe;
+					reload = true;
+				}
+			}
+		}
+		break;
 	case SDLK_1:
 		itemIndex = 0;
 		break;
@@ -1916,7 +2140,9 @@ void Players::mouseClickState(SDL_Event &e){
 			else if (this->itemIndex >=0 && this->itemIndex <=2)
 			{
 				// Shoot bullet
-				this->initialshot = true;
+				if (!this->reload) {
+					this->initialshot = true;
+				}
 			}
 		}
 		if (e.button.button == SDL_BUTTON_RIGHT) {
@@ -2231,6 +2457,7 @@ void Players::EquipWeapon(int weaponIndex, float itemDamage, float itemAtkSpeed)
 	this->itemIndex = weaponIndex;
 	this->damage = itemDamage;
 	this->atkSpeed = itemAtkSpeed;
+	this->equippedWeaponReloadSpeed = this->pistolReloadSpe;
 }
 
 void Players::stopEquipState() {

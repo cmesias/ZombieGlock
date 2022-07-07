@@ -54,6 +54,8 @@ public:	// Exclusive for this game
 	Mix_Chunk *sSlashHitBoss		= NULL;
 	Mix_Chunk *sCastHitBoss			= NULL;
 	Mix_Chunk *sExplosion			= NULL;
+	Mix_Chunk *sTrigger				= NULL;
+	Mix_Chunk *sPistolReload		= NULL;
 
 	Mix_Chunk *sPotBreak			= NULL;
 	Mix_Chunk *sValidation			= NULL;

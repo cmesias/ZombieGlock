@@ -103,10 +103,27 @@ public:	// resources
 	 */
 	int itemIndex = 0;
 
+private:	// Weapons
+
 	// Weapon attack speeds
+	float damage;
+	float atkSpeed;
 	const float pistolAtkSpe = 9.85;
 	const float rifleAtkSpe = 13.67;
 	const float shotgunAtkSpe = 4.45;
+
+	int ammoPistol; 	const int ammoPistolMax = 999; 	int magazinePistol;
+	float pistolReloadSpe;
+
+	int ammoRifle; 		const int ammoRifleMax = 999; 	int magazineRifle;
+	float rifleReloadSpe;
+
+	int ammoShotgun; 	const int ammoShotgunMax = 999; int magazineShotgun;
+	float shotgunReloadSpe;
+
+	bool reload;
+	float equippedWeaponReloadSpeed;
+	float reloadTimer;
 
 	/*
 	 *
@@ -301,7 +318,6 @@ private:
 	float powerUpTimer;
 
 	// Delay
-	float atkSpeed;	// Player's attack speed
 	float delayTimer;
 	bool delay;
 
@@ -334,7 +350,6 @@ private:
 	float healthMax = 100;				// Default: 100
 
 	// Damage
-	float damage;			// Sword damage
 	float castDamage;		// Cast damage
 	float damageMultipler;	// Parrying will increase damage multiplier
 
@@ -347,12 +362,6 @@ private:
 
 	// Parry
 	float parryLength;		// Parry length: 15 default
-
-private:	// Weapons
-
-	int ammoPistol; const int ammoPistolMax = 999;
-	int ammoRifle; const int ammoRifleMax = 999;
-	int ammoShotgun; const int ammoShotgunMax = 999;
 
 private:	// TODO [ ] - Save in file
 
@@ -580,6 +589,8 @@ public:	// functions
 	// Player shoot
 	void fire(Particle particle[], Particle &p_dummy, Mix_Chunk* sCastSFX, int mx, int my);
 
+	void UpdateReloading();
+
 	void Update(Map &map,
 				Particle particle[], Particle &p_dummy,
 				Tile &tl, Tile tile[],
@@ -601,6 +612,8 @@ public:	// functions
 	void RenderUIBars(SDL_Renderer *gRenderer, int camX, int camY);
 
 	void RenderUIText(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel);
+
+	void RenderUIInventory(SDL_Renderer *gRenderer, int camX, int camY, int CurrentLevel);
 
 	void RenderDeathScreen(SDL_Renderer *gRenderer, int camX, int camY);
 
