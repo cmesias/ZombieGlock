@@ -151,6 +151,8 @@ void Settings::LoadAudio()
 	sExplosion			= Mix_LoadWAV("sounds/bfxr/snd_explosion.wav");
 	sTrigger			= Mix_LoadWAV("sounds/snd_trigger.wav");
 	sPistolReload		= Mix_LoadWAV("sounds/snd_reload_pistol.wav");
+	sPistol				= Mix_LoadWAV("sounds/snd_pistol.wav");
+
 	sPotBreak			= Mix_LoadWAV("sounds/snd_potBreak.wav");
 	sValidation			= Mix_LoadWAV("sounds/zelda_pack/snd_validation.wav");
 	sGrunts[0]			= Mix_LoadWAV("sounds/cmesias/snd_grunt1.wav");
@@ -178,6 +180,8 @@ void Settings::FreeAudio()
 	Mix_FreeChunk(sExplosion);
 	Mix_FreeChunk(sTrigger);
 	Mix_FreeChunk(sPistolReload);
+	Mix_FreeChunk(sPistol);
+
 	Mix_FreeChunk(sPotBreak);
 	Mix_FreeChunk(sValidation);
 	sAmbientMusic 		= NULL;
@@ -195,6 +199,8 @@ void Settings::FreeAudio()
 	sExplosion			= NULL;
 	sTrigger			= NULL;
 	sPistolReload		= NULL;
+	sPistol				= NULL;
+
 	sPotBreak			= NULL;
 	sValidation			= NULL;
 
@@ -822,6 +828,7 @@ void Settings::ApplyAudioCfgToSFX() {
 	Mix_VolumeChunk(sExplosion			, getSfxVolume());
 	Mix_VolumeChunk(sTrigger			, getSfxVolume());
 	Mix_VolumeChunk(sPistolReload		, getSfxVolume());
+	Mix_VolumeChunk(sPistol				, getSfxVolume());
 
 	Mix_VolumeChunk(sPotBreak			, getSfxVolume());
 	Mix_VolumeChunk(sValidation			, getSfxVolume());
@@ -849,6 +856,7 @@ void Settings::ApplyAudioCfgToSFX(Settings &settings) {
 	Mix_VolumeChunk(settings.sExplosion			, getSfxVolume());
 	Mix_VolumeChunk(settings.sTrigger			, getSfxVolume());
 	Mix_VolumeChunk(settings.sPistolReload		, getSfxVolume());
+	Mix_VolumeChunk(settings.sPistol			, getSfxVolume());
 
 	Mix_VolumeChunk(settings.sPotBreak			, getSfxVolume());
 	Mix_VolumeChunk(settings.sValidation		, getSfxVolume());

@@ -363,7 +363,7 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 							this->angle, this->damage, 9);
 
 					// play audio
-					Mix_PlayChannel(1, settings->sCast, 0);
+					Mix_PlayChannel(1, settings->sPistol, 0);
 
 					// decrease magazine size
 					magazinePistol--;
@@ -413,6 +413,9 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 			// If not enough bullets
 			else {
 
+				// Stop trigger
+				initialshot = false;
+
 				// play audio
 				Mix_PlayChannel(1, settings->sTrigger, 0);
 			}
@@ -458,7 +461,7 @@ void Players::fire(Particle particle[], Particle &p_dummy, Mix_Chunk *sCastSFX, 
 							this->angle+5, this->damage, 9);
 
 					// play audio
-					Mix_PlayChannel(1, settings->sCast, 0);
+					Mix_PlayChannel(1, settings->sSlashHitBoss, 0);
 
 					// decrease magazine size
 					magazineShotgun--;
@@ -1564,7 +1567,7 @@ void Players::Render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 					&this->vPlayer[this->sprite_index + this->sprite_dir]);
 
 			// Render user weapon
-			int xOffset;
+			/*int xOffset;
 			if (this->facing == "right")
 				xOffset = -1;
 			else
@@ -1574,7 +1577,7 @@ void Players::Render(int mx, int my, int camx, int camy, LWindow gWindow, SDL_Re
 					getCenterY() - 16 - camy,
 					rItems->w, rItems->h,
 					&rItems[itemIndex],
-					angle, NULL, flipW);
+					angle, NULL, flipW);*/
 
 		}
 
@@ -2147,6 +2150,9 @@ void Players::mouseClickState(SDL_Event &e){
 		}
 		if (e.button.button == SDL_BUTTON_RIGHT) {
 			this->rightclick = true;
+
+			// Attack
+			SlashAttack();
 		}
 	}else if (e.type == SDL_MOUSEBUTTONUP) {
 		if (e.button.button == SDL_BUTTON_LEFT) {
