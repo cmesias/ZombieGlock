@@ -100,10 +100,17 @@ public: // variables
 
 public:	// Core Functions
 	void Init(Mob mob[]);
+
 	void Load(SDL_Renderer *gRenderer);
+
 	void Free();
+
 	void RemoveAll(Mob mob[]);
+
+	void Copy(Mob mob[]);
+
 	void Remove(Mob mob[]);
+
 	void Spawn(Mob mob[], float x, float y, float angle, float speed);
 
 	void Update(Mob mob[],

@@ -2513,12 +2513,18 @@ void PlayGame::checkCollisionTileMob()
 		if (mob[i].alive) {
 			bool MonsterIsColliding = false;
 
-			// Update collision with Tiles
-			// Player Velocity X Axis
-			mob[i].x += mob[i].vX;
-
 			// Move only in x-axis
 			if (mob[i].targetDistanceX >= mob[i].targetDistanceY) {
+
+			}
+
+			// Move only in y-axis
+			else{
+			}
+
+			// X axis
+			{
+				mob[i].x += mob[i].vX;
 				if (mob[i].alert) {
 					// If Monster has vision of target
 					//if (mob[i].hasVision) {
@@ -2547,25 +2553,25 @@ void PlayGame::checkCollisionTileMob()
 								// If Mob's target Y is lower than Tile's Y
 								if (mob[i].bmy2 < tile[j].y+tile[j].h/2) {
 									// If colliding with a Tile, move in Y direction towards Player
-									mob[i].y -= 2;
+									//mob[i].y -= 2;
 									//mob[i].vY -= 5;
 								} else {
 									// If colliding with a Tile, move in Y direction towards Player
-									mob[i].y += 2;
+									//mob[i].y += 2;
 								}
 							}
 						}
 					}
 				}
 				if (moveBack){
-					mob[i].x -= mob[i].vX;
+					//mob[i].x -= mob[i].vX;
 					//mob[i].x -= mob[i].velX;
 					MonsterIsColliding = true;
 				}
 			}
 
-			// Move only in y-axis
-			else{
+			// Y axis
+			{
 				mob[i].y += mob[i].vY;
 				// Player Velocity Y Axis
 				if (mob[i].alert) {
@@ -2591,23 +2597,23 @@ void PlayGame::checkCollisionTileMob()
 							rectB.h = tile[j].h;
 							if  ( checkCollisionRect( rectA, rectB )) {
 								// Continue handling collision
-								moveBack = true;
+								//moveBack = true;
 
 								// If Mob's target Y is lower than Tile's Y
 								if (mob[i].bmx2 < tile[j].x+tile[j].w/2) {
 									// If colliding with a Tile, move in Y direction towards Player
-									mob[i].x -= 2;
+									//mob[i].x -= 2;
 									//mob[i].vY -= 5;
 								} else {
 									// If colliding with a Tile, move in Y direction towards Player
-									mob[i].x += 2;
+									//mob[i].x += 2;
 								}
 							}
 						}
 					}
 				}
 				if (moveBack){
-					mob[i].y -= mob[i].vY;
+					//mob[i].y -= mob[i].vY;
 					//mob[i].y -= mob[i].velY;
 					MonsterIsColliding = true;
 				}
@@ -2622,6 +2628,50 @@ void PlayGame::checkCollisionTileMob()
 				mob[i].collision = true;
 			}else{
 				mob[i].collision = false;
+			}
+
+			// If mob has no vision, check if mob is inside Tile, squeeze Mob out of tile if so
+			if (!mob[i].hasVision) {
+				// mob circle collision check with other mobs
+				for (int j = 0; j < tl.max; j++) {
+					if (i != j) {
+						if (tile[j].alive) {
+							if (tile[j].collisionTile) {
+								float bmx = tile[j].x+tile[j].w/2;
+								float bmy = tile[j].y+tile[j].h/2;
+								float bmx2 = mob[i].xR+mob[i].wR/2;
+								float bmy2 = mob[i].yR+mob[i].hR/2;
+								float angle = atan2(bmy - bmy2,bmx - bmx2);
+								angle = angle * (180 / 3.1416);
+								if (angle < 0) {
+									angle = 360 - (-angle);
+								}
+								float radians = (3.1415926536/180)*(angle);
+								float Cos = floor(cos(radians)*10+0.5)/10;
+								float Sin = floor(sin(radians)*10+0.5)/10;
+								float distance = sqrt((bmx - bmx2) * (bmx - bmx2)+
+													  (bmy - bmy2) * (bmy - bmy2));
+								if (distance <= 0.01) {
+									distance = 0.01;
+								}
+								if (distance < mob[i].wR/2 + tile[j].w/2) {
+									//mob[i].x -= 1 * Cos;
+									//mob[i].vX = mob[i].vX * -1;
+
+									// This will move both mobs away from each other so they don't overlap
+									mob[i].x -= 4 * Cos;
+									mob[i].y -= 4 * Sin;
+									//tile[j].x += 1 * Cos;
+
+									// This still only bounces the mob thats being launched
+									//tile[j].vX = tile[j].vX * -1.2;
+
+									//mob[i].y -= 1 * Sin;
+								}
+							}
+							}
+					}
+				}
 			}
 
 			// Decrease knockback velocity each frame
@@ -4492,6 +4542,8 @@ void PlayGame::editorOnKeyDown( SDL_Keycode sym )
 				tlc.Copy(tilec);
 			}else if (place_type == 3) {
 				ite.Copy(item);
+			}else if (place_type == 4) {
+				mb.Copy(mob);
 			}
 		}
 		break;

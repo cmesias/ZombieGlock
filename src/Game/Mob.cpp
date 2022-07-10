@@ -105,11 +105,11 @@ void Mob::Load(SDL_Renderer *gRenderer) {
 	gTexture[1][4].loadFromFile(gRenderer, "resource/gfx/Monsters_Creatures_Fantasy/Goblin/Death.png");
 
 	// Mushroom
-	gTexture[2][0].loadFromFile(gRenderer, "resource/gfx/Monsters_Creatures_Fantasy/Mushroom/Idle.png");
+	gTexture[2][0].loadFromFile(gRenderer, "resource/gfx/Zombie/Idle.png");
 	gTexture[2][1].loadFromFile(gRenderer, "resource/gfx/Monsters_Creatures_Fantasy/Mushroom/Run.png");
-	gTexture[2][2].loadFromFile(gRenderer, "resource/gfx/Monsters_Creatures_Fantasy/Mushroom/Attack.png");
+	gTexture[2][2].loadFromFile(gRenderer, "resource/gfx/Zombie/Attack.png");
 	gTexture[2][3].loadFromFile(gRenderer, "resource/gfx/Monsters_Creatures_Fantasy/Mushroom/Take Hit.png");
-	gTexture[2][4].loadFromFile(gRenderer, "resource/gfx/Monsters_Creatures_Fantasy/Mushroom/Death.png");
+	gTexture[2][4].loadFromFile(gRenderer, "resource/gfx/Zombie/Death.png");
 
 	// Flying eye
 	gTexture[3][0].loadFromFile(gRenderer, "resource/gfx/Monsters_Creatures_Fantasy/Eye/Flight.png");
@@ -152,6 +152,15 @@ void Mob::RemoveAll(Mob mob[]) {
 	}
 }
 
+void Mob::Copy(Mob mob[]) {
+	for (int i = 0; i < max; i++) {
+		if (mob[i].alive){
+			if (mob[i].mouse){
+				type = mob[i].type;
+			}
+		}
+	}
+}
 
 void Mob::Remove(Mob mob[]) {
 	for (int i = 0; i < max; i++) {
@@ -327,8 +336,8 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 				if (mob[i].alert)
 				{
 					// Walk towards player
-					mob[i].vX += mob[i].moveSpe * (mob[i].bmx - mob[i].bmx2) / mob[i].distance;
-					mob[i].vY += mob[i].moveSpe * (mob[i].bmy - mob[i].bmy2) / mob[i].distance;
+					mob[i].vX += ( (mob[i].moveSpe) * ((mob[i].bmx - mob[i].bmx2) / mob[i].distance) ) * 0.50;
+					mob[i].vY += ( (mob[i].moveSpe) * ((mob[i].bmy - mob[i].bmy2) / mob[i].distance) ) * 0.50;
 
 					if (mob[i].vX > 1) {
 						mob[i].vX = 1;
@@ -363,18 +372,19 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 							mob[i].randomAttack = rand() % 2;
 
 							// Set direction of attack
+							if (mob[i].alert) {
+								// Looking Right
+				                if (mob[i].bmx > mob[i].getCenterX(mob, i)) {
+									mob[i].atkDir		= "right";
+									mob[i].atkXOffset	= 0;
+				                }
 
-							// Looking Right
-			                if (mob[i].bmx > mob[i].getCenterX(mob, i)) {
-								mob[i].atkDir		= "right";
-								mob[i].atkXOffset	= 0;
-			                }
-
-			                // Looking Left
-			                else {
-								mob[i].atkDir		= "left";
-								mob[i].atkXOffset	= -mob[i].wR*3;
-			                }
+				                // Looking Left
+				                else {
+									mob[i].atkDir		= "left";
+									mob[i].atkXOffset	= -mob[i].wR*3;
+				                }
+							}
 
 							// Start attack animation
 							mob[i].animState = 1;
@@ -745,17 +755,17 @@ void Mob::Update(Mob mob[], Object &obj, Object object[],
 			////////////////////////////////////////////////////////////////////////////
 
 			// Camera level bounds
-			if( mob[i].x < 0 ){
-				mob[i].x = 0;
+			if( mob[i].xR < 0 ){
+				mob[i].xR = 0;
 			}
-			if( mob[i].y < 0 ){
-				mob[i].y = 0;
+			if( mob[i].yR < 0 ){
+				mob[i].yR = 0;
 			}
-			if( mob[i].x+mob[i].w > map.w ){
-				mob[i].x = map.w-mob[i].w;
+			if( mob[i].xR+mob[i].wR > map.w ){
+				mob[i].xR = map.w-mob[i].wR;
 			}
-			if( mob[i].y+mob[i].h > map.h ){
-				mob[i].y = map.h-mob[i].h ;
+			if( mob[i].yR+mob[i].hR > map.h ){
+				mob[i].yR = map.h-mob[i].hR ;
 			}
 			if (
 				mob[i].flash) {
@@ -815,6 +825,10 @@ void UpdateCollisionMob(Mob mob[], int i) {
 void Mob::UpdateEditor(Mob mob[], int mex, int mey, int camx, int camy) {
 	for (int i = 0; i < this->max; i++) {
 		if (mob[i].alive) {
+
+			// Set real pixel position of Mob
+			mob[i].xR = mob[i].x + 62*1;
+			mob[i].yR = mob[i].y + 44*1;
 
 			//If the mouse is on the tile
 			if (mex > mob[i].xR && mex < mob[i].xR + mob[i].wR &&
@@ -1259,8 +1273,8 @@ void Mob::GetDistanceOfPlayer(Mob mob[], float targetX, float targetY, float tar
 			/////////////////////////// GET DISTANCE OF PLAYER /////////////////////////
 
 			// Center of Mobs
-			mob[i].x2 				= mob[i].x+mob[i].w/2;
-			mob[i].y2 				= mob[i].y+mob[i].h/2;
+			mob[i].x2 				= mob[i].xR+mob[i].wR/2;
+			mob[i].y2 				= mob[i].yR+mob[i].hR/2;
 
 			// Get center of attack-object (spawned by the player attacking)
 			mob[i].bmx = targetX+targetW/2;
